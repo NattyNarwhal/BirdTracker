@@ -37,7 +37,7 @@ class ModulePlayer: ObservableObject {
         } catch {
             print("Ope, can't start audio?")
         }
-        let interval = 1 / (48000 / Double(480))
+        let interval = 1 / (format!.sampleRate / Double(buffer.frameCapacity))
         let timer = Timer(timeInterval: interval / 2, repeats: true) {
             [weak self] _ in
             guard self?.playing  == true else {

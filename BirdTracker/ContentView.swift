@@ -26,6 +26,11 @@ struct ContentView: View {
             } label: {
                 Text("Play")
             }
+            Button {
+                player.stop()
+            } label: {
+                Text("Stop")
+            }
         }
         .padding()
     }
