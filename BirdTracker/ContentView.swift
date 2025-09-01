@@ -6,19 +6,27 @@
 //
 
 import SwiftUI
+import openmpt
 
 struct ContentView: View {
+    @StateObject var player = ModulePlayer()
+    
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Button {
+                if let handle = FileHandle(forReadingAtPath: "/Users/calvin/Downloads/truefaith.xm") {
+                    let module = Module(fileHandle: handle)
+                    player.currentModule = module
+                }
+            } label: {
+                Text("Load")
+            }
+            Button {
+                player.play()
+            } label: {
+                Text("Play")
+            }
         }
         .padding()
     }
-}
-
-#Preview {
-    ContentView()
 }
