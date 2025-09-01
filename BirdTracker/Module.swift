@@ -20,19 +20,12 @@ class Module {
         underlying = openmpt_module_create2(fdCallbacks, wrappedFd, nil, nil, nil, nil, nil, nil, nil)
     }
     
-    func readStereo() -> ([Float32], [Float32])? {
-        var left = Array<Float32>(repeating: 0, count: 480)
-        var right = Array<Float32>(repeating: 0, count: 480)
-        
-        let count = openmpt_module_read_float_stereo(underlying, 48000, 480, &left, &right)
-        if count == 0 {
-            return nil
-        }
-        return (left, right)
+    func readStereo(left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int, sampleRate: Int32 = 48000) -> Int {
+        return openmpt_module_read_float_stereo(underlying, sampleRate, count, left, right)
     }
     
-    func readStereo(left: UnsafeMutablePointer<Float>, right: UnsafeMutablePointer<Float>, count: Int = 480) -> Int {
-        return openmpt_module_read_float_stereo(underlying, 48000, count, left, right)
+    func readMono(buffer: UnsafeMutablePointer<Float>, count: Int, sampleRate: Int32 = 48000) -> Int {
+        return openmpt_module_read_float_mono(underlying, sampleRate, count, buffer)
     }
     
     deinit {

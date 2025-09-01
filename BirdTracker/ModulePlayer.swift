@@ -7,11 +7,13 @@
 
 import Foundation
 import AVFAudio
+import AudioToolbox
 
 class ModulePlayer: ObservableObject {
     var currentModule: Module?
     
     var playing = false
+    var timer: Timer?
     
     var engine = AVAudioEngine()
     var playerNode = AVAudioPlayerNode()
@@ -28,7 +30,8 @@ class ModulePlayer: ObservableObject {
             print("Ope, no module")
             return
         }
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format!, frameCapacity: 480) else {
+        let frameCount = 12800
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: self.format!, frameCapacity: AVAudioFrameCount(frameCount)) else {
             print("Ope, no buffer")
             return
         }
@@ -37,13 +40,12 @@ class ModulePlayer: ObservableObject {
         } catch {
             print("Ope, can't start audio?")
         }
-        let interval = 1 / (format!.sampleRate / Double(buffer.frameCapacity))
-        let timer = Timer(timeInterval: interval / 2, repeats: true) {
+        let interval = 1 / (self.format!.sampleRate / Double(frameCount))
+        self.timer = Timer(timeInterval: interval, repeats: true) {
             [weak self] _ in
             guard self?.playing  == true else {
                 return
             }
-        
             guard let floatChannelData = buffer.floatChannelData else {
                 return
             }
@@ -54,13 +56,14 @@ class ModulePlayer: ObservableObject {
             buffer.frameLength = AVAudioFrameCount(count)
             self?.playerNode.scheduleBuffer(buffer, at: nil, options: [.interrupts])
         }
-        RunLoop.current.add(timer, forMode: .common)
+        RunLoop.current.add(self.timer!, forMode: .common)
         
         playerNode.play()
         playing = true
     }
     
     func stop() {
+        self.timer?.invalidate()
         playing = false
         playerNode.stop()
         engine.stop()
