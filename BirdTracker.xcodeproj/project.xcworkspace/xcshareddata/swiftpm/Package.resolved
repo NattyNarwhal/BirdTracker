@@ -1,10 +1,10 @@
 {
-  "originHash" : "47f6f42be9c95734ce970f817a1edbcdc247966f2f53a682c6a37ab6f5d01a5b",
+  "originHash" : "f660f2a723886f61b30310b664d772f116e5fa5195324a8acd2ad7d4862224ed",
   "pins" : [
     {
       "identity" : "libopenmpt-swift",
-      "kind" : "localSourceControl",
-      "location" : "/Users/calvin/src/libopenmpt-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/NattyNarwhal/libopenmpt-swift",
       "state" : {
         "branch" : "main",
         "revision" : "b49a9dbe4a2909aee503cb86255fb0e6943a08c9"

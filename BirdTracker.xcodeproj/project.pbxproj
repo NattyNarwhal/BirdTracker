@@ -350,7 +350,7 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		3E1473C62E5A7A9600A50EA5 /* XCRemoteSwiftPackageReference "libopenmpt-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "/Users/calvin/src/libopenmpt-swift";
+			repositoryURL = "https://github.com/NattyNarwhal/libopenmpt-swift";
 			requirement = {
 				branch = main;
 				kind = branch;
