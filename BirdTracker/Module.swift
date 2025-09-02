@@ -28,6 +28,22 @@ class Module {
         return openmpt_module_read_float_mono(underlying, sampleRate, count, buffer)
     }
     
+    var position: TimeInterval {
+        return openmpt_module_get_position_seconds(underlying)
+    }
+    
+    var duration: TimeInterval {
+        return openmpt_module_get_duration_seconds(underlying)
+    }
+    
+    var currentPattern: Int32 {
+        return openmpt_module_get_current_pattern(underlying)
+    }
+    
+    var currentRow: Int32 {
+        return openmpt_module_get_current_row(underlying)
+    }
+    
     deinit {
         openmpt_module_destroy(underlying)
     }

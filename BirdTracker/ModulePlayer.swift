@@ -7,17 +7,25 @@
 
 import Foundation
 import AVFAudio
-import AudioToolbox
+import SwiftUI
 
-class ModulePlayer: ObservableObject {
-    var currentModule: Module?
+@Observable class ModulePlayer {
+    var currentModule: Module? {
+        didSet {
+            self.currentRow = 0
+            self.currentPattern = 0
+        }
+    }
     
     var playing = false
-    var timer: Timer?
     
-    var engine = AVAudioEngine()
-    var sourceNode: AVAudioSourceNode!
-    let format = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2)
+    // Updated by the callback, as the callback is variable based on tempo
+    var currentRow: Int32 = 0
+    var currentPattern: Int32 = 0
+    
+    private var engine = AVAudioEngine()
+    private var sourceNode: AVAudioSourceNode!
+    private let format = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2)
     
     init() {
         self.sourceNode = AVAudioSourceNode(format: format!, renderBlock: { silence, timestamp, frameCount, buffers in
@@ -34,6 +42,10 @@ class ModulePlayer: ObservableObject {
             if count == 0 {
                 silence.pointee = true
             }
+            
+            self.currentRow = module.currentRow
+            self.currentPattern = module.currentPattern
+            
             return noErr
         })
         
@@ -43,6 +55,10 @@ class ModulePlayer: ObservableObject {
     }
     
     func play() {
+        guard self.currentModule != nil else {
+            print("Ope, no module")
+            return
+        }
         do {
             try engine.start()
         } catch {
@@ -52,7 +68,8 @@ class ModulePlayer: ObservableObject {
     }
     
     func stop() {
-        self.timer?.invalidate()
+        self.currentRow = 0
+        self.currentPattern = 0
         playing = false
         engine.stop()
     }

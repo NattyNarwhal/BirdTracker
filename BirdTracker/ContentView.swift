@@ -9,7 +9,7 @@ import SwiftUI
 import openmpt
 
 struct ContentView: View {
-    @StateObject var player = ModulePlayer()
+    @Environment(\.player) private var player
     
     var body: some View {
         VStack {
@@ -31,6 +31,7 @@ struct ContentView: View {
             } label: {
                 Text("Stop")
             }
+            Text("\(player.currentPattern)/\(player.currentRow)")
         }
         .padding()
     }
