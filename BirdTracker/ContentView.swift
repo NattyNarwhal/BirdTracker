@@ -11,16 +11,26 @@ import openmpt
 struct ContentView: View {
     @Environment(\.player) private var player
     
+    @State var showOpenDialog = false
+    
     var body: some View {
         VStack {
             Button {
-                if let handle = FileHandle(forReadingAtPath: "/Users/calvin/Downloads/truefaith.xm"),
-                   let module = try? Module(fileHandle: handle) {
-                    player.currentModule = module
-                    
-                }
+                showOpenDialog = true
             } label: {
                 Text("Load")
+            }
+            .fileImporter(isPresented: $showOpenDialog, allowedContentTypes: Module.supportedTypes()) { result in
+                switch result {
+                case .success(let resultURL):
+                    if let handle = try? FileHandle(forReadingFrom: resultURL),
+                       let module = try? Module(fileHandle: handle) {
+                        player.currentModule = module
+                    }
+                default:
+                    break
+                }
+                showOpenDialog = false
             }
             Button {
                 player.play()
