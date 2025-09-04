@@ -27,6 +27,15 @@ import SwiftUI
     var position: Double = 0
     var duration: Double = 0
     
+    var volume: Float {
+        get {
+            return sourceNode.volume
+        }
+        set {
+            sourceNode.volume = newValue
+        }
+    }
+    
     private var engine = AVAudioEngine()
     private var sourceNode: AVAudioSourceNode!
     // XXX: Handle this dynamically changing based on output device?
