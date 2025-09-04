@@ -12,8 +12,10 @@ import SwiftUI
 @Observable class ModulePlayer {
     var currentModule: Module? {
         didSet {
-            self.currentRow = 0
-            self.currentPattern = 0
+            self.stop()
+            if let currentModule = self.currentModule {
+                self.duration = currentModule.duration
+            }
         }
     }
     
@@ -22,15 +24,19 @@ import SwiftUI
     // Updated by the callback, as the callback is variable based on tempo
     var currentRow: Int32 = 0
     var currentPattern: Int32 = 0
+    var position: Double = 0
+    var duration: Double = 0
     
     private var engine = AVAudioEngine()
     private var sourceNode: AVAudioSourceNode!
+    // XXX: Handle this dynamically changing based on output device?
     private let format = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2)
     
     init() {
         self.sourceNode = AVAudioSourceNode(format: format!, renderBlock: { silence, timestamp, frameCount, buffers in
             guard let module = self.currentModule else {
                 print("Ope, no module")
+                self.stop()
                 return noErr
             }
             
@@ -45,6 +51,7 @@ import SwiftUI
             
             self.currentRow = module.currentRow
             self.currentPattern = module.currentPattern
+            self.position = module.position
             
             return noErr
         })

@@ -14,8 +14,8 @@ struct ContentView: View {
     var body: some View {
         VStack {
             Button {
-                if let handle = FileHandle(forReadingAtPath: "/Users/calvin/Downloads/truefaith.xm") {
-                    let module = Module(fileHandle: handle)
+                if let handle = FileHandle(forReadingAtPath: "/Users/calvin/Downloads/truefaith.xm"),
+                   let module = try? Module(fileHandle: handle) {
                     player.currentModule = module
                 }
             } label: {
