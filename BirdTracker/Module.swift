@@ -152,4 +152,60 @@ class Module {
             openmpt_module_set_repeat_count(underlying, newValue)
         }
     }
+    
+    // #MARK: - Channels
+    
+    var channels: Int32 {
+        return openmpt_module_get_num_channels(underlying)
+    }
+    
+    var channelNames: [String] {
+        var names: [String] = []
+        for i in 0...channels {
+            let cString = openmpt_module_get_channel_name(underlying, i)!
+            names.append(String(cString: cString))
+        }
+        return names
+    }
+    
+    // #MARK: Patterns
+    
+    struct Pattern {
+        let module: Module
+        
+        let index: Int32
+        let name: String
+        
+        let rows: Int32
+        let rowsPerBeat: Int32
+        let rowsPerMeasure: Int32
+        
+        let isSkip: Bool
+        let isStop: Bool
+        
+        init(module: Module, index i: Int32) {
+            self.module = module
+            self.index = i
+            self.name = String(cString: openmpt_module_get_pattern_name(module.underlying, i))
+            self.rows = openmpt_module_get_pattern_num_rows(module.underlying, i)
+            self.rowsPerBeat = openmpt_module_get_pattern_rows_per_beat(module.underlying, i)
+            self.rowsPerMeasure = openmpt_module_get_pattern_rows_per_measure(module.underlying, i)
+            self.isSkip = openmpt_module_is_pattern_skip_item(module.underlying, i) != 0
+            self.isStop = openmpt_module_is_pattern_stop_item(module.underlying, i) != 0
+        }
+        
+        func formatted(row: Int32, channel: Int32, width: Int = 0, pad: Bool = false) -> String {
+            let cString = openmpt_module_format_pattern_row_channel(module.underlying, index, row, channel, width, pad ? 1 : 0)!
+            return String(cString: cString)
+        }
+    }
+    
+    var patterns: [Pattern] {
+        let count = openmpt_module_get_num_patterns(underlying)
+        var patterns: [Pattern] = []
+        for i in 0...count {
+            patterns.append(Pattern(module: self, index: i))
+        }
+        return patterns
+    }
 }

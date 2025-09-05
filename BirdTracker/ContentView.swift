@@ -54,6 +54,10 @@ struct ContentView: View {
             }, set: { newValue in
                 player.volume = newValue
             }), in: 0...1)
+            Text("Pattern:")
+            if let pattern = player.currentModule?.patterns[Int(player.currentPattern)] {
+                PatternViewer(pattern: pattern, highlightedRow: player.currentRow)
+            }
         }
         .padding()
     }
