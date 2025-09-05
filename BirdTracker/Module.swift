@@ -220,12 +220,12 @@ class Module {
         return samples
     }
     
-    // #MARK: Patterns
+    // #MARK: - Patterns
     
-    struct Pattern {
+    struct Pattern: Identifiable {
         let module: Module
         
-        let index: Int32
+        let id: Int32
         let name: String
         
         let rows: Int32
@@ -237,7 +237,7 @@ class Module {
         
         init(module: Module, index i: Int32) {
             self.module = module
-            self.index = i
+            self.id = i
             self.name = String(cString: openmpt_module_get_pattern_name(module.underlying, i))
             self.rows = openmpt_module_get_pattern_num_rows(module.underlying, i)
             self.rowsPerBeat = openmpt_module_get_pattern_rows_per_beat(module.underlying, i)
@@ -247,7 +247,7 @@ class Module {
         }
         
         func formatted(row: Int32, channel: Int32, width: Int = 0, pad: Bool = false) -> String {
-            let cString = openmpt_module_format_pattern_row_channel(module.underlying, index, row, channel, width, pad ? 1 : 0)!
+            let cString = openmpt_module_format_pattern_row_channel(module.underlying, id, row, channel, width, pad ? 1 : 0)!
             return String(cString: cString)
         }
     }
