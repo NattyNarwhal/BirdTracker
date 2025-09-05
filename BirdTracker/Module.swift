@@ -159,17 +159,65 @@ class Module {
     
     // #MARK: - Channels
     
-    var channels: Int32 {
+    struct Channel: Identifiable {
+        let id: Int32
+        let name: String
+    }
+    
+    var channelCount: Int32 {
         return openmpt_module_get_num_channels(underlying)
     }
     
-    var channelNames: [String] {
-        var names: [String] = []
-        for i in 0...channels {
+    var channels: [Channel] {
+        var channels: [Channel] = []
+        for i in 0...channelCount {
             let cString = openmpt_module_get_channel_name(underlying, i)!
-            names.append(String(cString: cString))
+            let name = String(cString: cString)
+            channels.append(Channel(id: i, name: name))
         }
-        return names
+        return channels
+    }
+    
+    // #MARK: - Instruments
+    
+    struct Instrument: Identifiable {
+        let id: Int32
+        let name: String
+    }
+    
+    var instrumentCount: Int32 {
+        return openmpt_module_get_num_instruments(underlying)
+    }
+    
+    var instruments: [Instrument] {
+        var instruments: [Instrument] = []
+        for i in 0...instrumentCount {
+            let cString = openmpt_module_get_instrument_name(underlying, i)!
+            let name = String(cString: cString)
+            instruments.append(Instrument(id: i, name: name))
+        }
+        return instruments
+    }
+    
+    // #MARK: - Samples
+    
+    struct Sample: Identifiable {
+        let id: Int32
+        let name: String
+    }
+    
+    var sampleCount: Int32 {
+        return openmpt_module_get_num_samples(underlying)
+    }
+    
+    var samples: [Sample] {
+        var samples: [Sample] = []
+        for i in 0...sampleCount {
+            let cString = openmpt_module_get_sample_name(underlying, i)!
+            let name = String(cString: cString)
+            samples.append(Sample(id: i, name: name))
+        }
+        return samples
     }
     
     // #MARK: Patterns

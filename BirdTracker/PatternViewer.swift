@@ -18,11 +18,6 @@ struct PatternViewer: View {
         let id: Int32
     }
     
-    struct Channel: Identifiable {
-        let id: Int32
-        let name: String
-    }
-    
     struct Row: Identifiable {
         let id: Int32
         let channels: [Cell]
@@ -36,12 +31,9 @@ struct PatternViewer: View {
     }
     
     var body: some View {
-        let channelNames = pattern.module.channelNames
-        let channels = (0...pattern.module.channels).map { channel in
-            return Channel(id: channel, name: channelNames[Int(channel)])
-        }
+        let channels = pattern.module.channels
         let rows = (0...pattern.rows).map { row in
-            return Row(id: row, channels: (0...pattern.module.channels).map { channel in
+            return Row(id: row, channels: (0...pattern.module.channelCount).map { channel in
                 Cell(id: row)
             })
         }

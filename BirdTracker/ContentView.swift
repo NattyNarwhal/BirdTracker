@@ -42,7 +42,6 @@ struct ContentView: View {
             } label: {
                 Text("Pause")
             }
-            Text("\(player.currentPattern)/\(player.currentRow)")
             // as we can't bind directly to player
             Slider(value: Binding(get: {
                 player.position
@@ -55,7 +54,28 @@ struct ContentView: View {
             }, set: { newValue in
                 player.volume = newValue
             }), in: 0...1)
-            Text("Pattern:")
+            if let module = player.currentModule {
+                TabView {
+                    List(module.samples) {
+                        Text($0.name)
+                    }
+                    .monospaced()
+                    .tabItem {
+                        Text("Samples")
+                    }
+                    if module.instrumentCount > 0 {
+                        List(module.instruments) {
+                            Text($0.name)
+                        }
+                        .monospaced()
+                        .tabItem {
+                            Text("Instruments")
+                        }
+                    }
+                }
+                .tabViewStyle(.grouped)
+            }
+            Text("\(player.currentPattern)/\(player.currentRow)")
             if let pattern = player.currentModule?.patterns[Int(player.currentPattern)] {
                 PatternViewer(pattern: pattern, highlightedRow: player.currentRow)
                     .environment(\.player, player)
