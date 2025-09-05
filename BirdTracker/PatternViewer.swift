@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct PatternViewer: View {
+    @Environment(\.player) private var player
+    
     let pattern: Module.Pattern
     
     let highlightedRow: Int32
@@ -26,6 +28,13 @@ struct PatternViewer: View {
         let channels: [Cell]
     }
     
+    func updatePosition(row: Int32?) {
+        if let row {
+            pattern.module.setPosition(order: player.currentOrder, row: row)
+            player.currentRow = row // if paused
+        }
+    }
+    
     var body: some View {
         let channelNames = pattern.module.channelNames
         let channels = (0...pattern.module.channels).map { channel in
@@ -38,7 +47,7 @@ struct PatternViewer: View {
         }
         // This feels really awkward
         ScrollViewReader { proxy in
-            Table(of: Row.self, selection: Binding(get: { return highlightedRow }, set: { _ in })) {
+            Table(of: Row.self, selection: Binding(get: { return highlightedRow }, set: { newValue in updatePosition(row: newValue) })) {
                 TableColumnForEach(channels) { channel in
                     TableColumn(channel.name) { (row: Row) in
                         let formatted = pattern.formatted(row: row.id, channel: channel.id)

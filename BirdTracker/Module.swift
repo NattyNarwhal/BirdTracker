@@ -115,6 +115,10 @@ class Module {
         return openmpt_module_get_duration_seconds(underlying)
     }
     
+    var currentOrder: Int32 {
+        return openmpt_module_get_current_order(underlying)
+    }
+    
     var currentPattern: Int32 {
         return openmpt_module_get_current_pattern(underlying)
     }

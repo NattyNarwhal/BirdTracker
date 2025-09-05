@@ -38,9 +38,9 @@ struct ContentView: View {
                 Text("Play")
             }
             Button {
-                player.stop()
+                player.pause()
             } label: {
-                Text("Stop")
+                Text("Pause")
             }
             Text("\(player.currentPattern)/\(player.currentRow)")
             // as we can't bind directly to player
@@ -48,6 +48,7 @@ struct ContentView: View {
                 player.position
             }, set: { newValue in
                 player.currentModule?.position = newValue
+                player.position = newValue // if paused
             }), in: 0...player.duration)
             Slider(value: Binding(get: {
                 player.volume
@@ -57,6 +58,7 @@ struct ContentView: View {
             Text("Pattern:")
             if let pattern = player.currentModule?.patterns[Int(player.currentPattern)] {
                 PatternViewer(pattern: pattern, highlightedRow: player.currentRow)
+                    .environment(\.player, player)
             }
         }
         .padding()

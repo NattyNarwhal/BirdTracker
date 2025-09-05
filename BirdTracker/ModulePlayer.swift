@@ -23,6 +23,7 @@ import SwiftUI
     
     // Updated by the callback, as the callback is variable based on tempo
     var currentRow: Int32 = 0
+    var currentOrder: Int32 = 0
     var currentPattern: Int32 = 0
     var position: Double = 0
     var duration: Double = 0
@@ -58,9 +59,13 @@ import SwiftUI
                 silence.pointee = true
             }
             
-            self.currentRow = module.currentRow
-            self.currentPattern = module.currentPattern
-            self.position = module.position
+            // Or we gunk up the audio thread
+            DispatchQueue.main.async {
+                self.currentRow = module.currentRow
+                self.currentOrder = module.currentOrder
+                self.currentPattern = module.currentPattern
+                self.position = module.position
+            }
             
             return noErr
         })
@@ -81,6 +86,11 @@ import SwiftUI
             print("Ope, can't start audio?")
         }
         playing = true
+    }
+    
+    func pause() {
+        playing = false
+        engine.stop()
     }
     
     func stop() {
