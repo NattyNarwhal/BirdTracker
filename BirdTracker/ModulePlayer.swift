@@ -56,10 +56,23 @@ import SwiftUI
             // Or we gunk up the audio thread
             DispatchQueue.main.async {
                 if let moduleState = self.currentModuleState {
-                    moduleState.currentRow = module.currentRow
-                    moduleState.currentOrder = module.currentOrder
-                    moduleState.currentPattern = module.currentPattern
-                    moduleState.position = module.position
+                    // TODO: Check if this is because of an error of end of module
+                    if count == 0 {
+                        // We can't stop the audio thread from the audio thread,
+                        // otherwise "ERROR, attempting to cleanup while rendering"
+                        self.stop()
+                        // Reset position (and then move onto next track)
+                        moduleState.module.position = 0
+                        moduleState.position = 0
+                        moduleState.currentRow = module.currentRow
+                        moduleState.currentOrder = module.currentOrder
+                        moduleState.currentPattern = module.currentPattern
+                    } else {
+                        moduleState.currentRow = module.currentRow
+                        moduleState.currentOrder = module.currentOrder
+                        moduleState.currentPattern = module.currentPattern
+                        moduleState.position = module.position
+                    }
                 }
             }
             
