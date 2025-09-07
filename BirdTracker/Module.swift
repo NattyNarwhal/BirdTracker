@@ -191,19 +191,19 @@ class Module: Equatable {
         let name: String
     }
     
-    var channelCount: Int32 {
+    lazy var channelCount: Int32 = {
         return openmpt_module_get_num_channels(underlying)
-    }
+    }()
     
-    var channels: [Channel] {
+    lazy var channels: [Channel]  = {
         var channels: [Channel] = []
         for i in 0...channelCount {
             let cString = openmpt_module_get_channel_name(underlying, i)!
             let name = String(cString: cString)
-            channels.append(Channel(id: i, name: name))
+            channels.append(Channel(id: i, name: name.isEmpty ? "Channel \(i)" : name))
         }
         return channels
-    }
+    }()
     
     // #MARK: - Instruments
     
@@ -212,11 +212,11 @@ class Module: Equatable {
         let name: String
     }
     
-    var instrumentCount: Int32 {
+    lazy var instrumentCount: Int32 = {
         return openmpt_module_get_num_instruments(underlying)
-    }
+    }()
     
-    var instruments: [Instrument] {
+    lazy var instruments: [Instrument]  = {
         var instruments: [Instrument] = []
         for i in 0...instrumentCount {
             let cString = openmpt_module_get_instrument_name(underlying, i)!
@@ -224,7 +224,7 @@ class Module: Equatable {
             instruments.append(Instrument(id: i, name: name))
         }
         return instruments
-    }
+    }()
     
     // #MARK: - Samples
     
@@ -233,11 +233,11 @@ class Module: Equatable {
         let name: String
     }
     
-    var sampleCount: Int32 {
+    lazy var sampleCount: Int32 = {
         return openmpt_module_get_num_samples(underlying)
-    }
+    }()
     
-    var samples: [Sample] {
+    lazy var samples: [Sample] =  {
         var samples: [Sample] = []
         for i in 0...sampleCount {
             let cString = openmpt_module_get_sample_name(underlying, i)!
@@ -245,12 +245,12 @@ class Module: Equatable {
             samples.append(Sample(id: i, name: name))
         }
         return samples
-    }
+    }()
     
     // #MARK: - Patterns
     
     struct Pattern: Identifiable {
-        let module: Module
+        weak var module: Module!
         
         let id: Int32
         let name: String
@@ -279,14 +279,14 @@ class Module: Equatable {
         }
     }
     
-    var patterns: [Pattern] {
+    lazy var patterns: [Pattern] = {
         let count = openmpt_module_get_num_patterns(underlying)
         var patterns: [Pattern] = []
         for i in 0...count {
             patterns.append(Pattern(module: self, index: i))
         }
         return patterns
-    }
+    }()
     
     // #MARK: - Metadata
     
