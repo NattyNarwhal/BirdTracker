@@ -44,11 +44,22 @@ import UniformTypeIdentifiers
     var position: Double = 0
     var duration: Double = 0
     
+    var currentPlayingChannels: Int32 = 0
+    var currentSpeed: Int32 = 0
+    var currentTempo: Double = 0
+    var currentEstimatedBPM: Double = 0
+    
     func update() {
         self.currentRow = module.currentRow
         self.currentOrder = module.currentOrder
         self.currentPattern = module.currentPattern
         self.position = module.position
+        
+        // these adjust dynamically too
+        self.currentPlayingChannels = module.currentPlayingChannels
+        self.currentEstimatedBPM = module.currentEstimatedBPM
+        self.currentTempo = module.currentTempo
+        self.currentSpeed = module.currentSpeed
     }
     
     func seek(time: TimeInterval) {

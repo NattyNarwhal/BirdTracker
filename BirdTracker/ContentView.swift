@@ -18,7 +18,11 @@ struct ContentView: View {
     }
     
     struct MetadataView: View {
-        let module: Module
+        let moduleState: ModuleState
+        
+        var module: Module {
+            moduleState.module
+        }
         
         @ViewBuilder func field(label: String, string: String) -> some View {
             LabeledContent {
@@ -72,9 +76,10 @@ struct ContentView: View {
                         field(label: "Date", string: savedDateISO8601)
                     }
                     Divider()
-                    field(label: "Est. BPM", number: module.currentEstimatedBPM)
-                    field(label: "Speed", number: module.currentSpeed)
-                    field(label: "Tempo", number: module.currentTempo)
+                    field(label: "Active Channels", number: moduleState.currentPlayingChannels)
+                    field(label: "Est. BPM", number: moduleState.currentEstimatedBPM)
+                    field(label: "Speed", number: moduleState.currentSpeed)
+                    field(label: "Tempo", number: moduleState.currentTempo)
                 }
                 .formStyle(.columns)
                 if let message = module.metadata["message_raw"] {
@@ -203,7 +208,7 @@ struct ContentView: View {
                     } else if inspectorMode == .instruments {
                         InstrumentsView(moduleState: moduleState)
                     } else if inspectorMode == .metadata {
-                        MetadataView(module: module)
+                        MetadataView(moduleState: moduleState)
                     }
                 }
         }
