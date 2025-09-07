@@ -37,9 +37,9 @@ struct ModuleError: Error {
 // #MARK: - Class
 
 class Module {
-    let underlying: OpaquePointer!
+    var underlying: OpaquePointer!
     
-    let fileHandle: FileHandle!
+    var fileHandle: FileHandle?
     
     // #MARK: - File Types
     
@@ -61,11 +61,21 @@ class Module {
     var error: Int32
     var errorCString: UnsafePointer<CChar>?
     
+    private func checkErrorString() throws {
+        if let errorCString = self.errorCString {
+            let errorString = String(cString: errorCString)
+            openmpt_free_string(errorCString)
+            throw ModuleError(error: error, message: errorString)
+        } else {
+            throw ModuleError(error: error, message: "(nil string)")
+        }
+    }
+    
     init(fileHandle: FileHandle) throws {
         self.fileHandle = fileHandle
         self.error = OPENMPT_ERROR_OK
         let fdCallbacks = openmpt_stream_get_fd_callbacks()
-        let wrappedFd = UnsafeMutableRawPointer(bitPattern: UInt(self.fileHandle.fileDescriptor))
+        let wrappedFd = UnsafeMutableRawPointer(bitPattern: UInt(self.fileHandle!.fileDescriptor))
         underlying = openmpt_module_create2(fdCallbacks,
                                             wrappedFd,
                                             openmptLog,
@@ -76,12 +86,25 @@ class Module {
                                             &errorCString,
                                             nil)
         if underlying == nil {
-            if let errorCString = self.errorCString {
-                let errorString = String(cString: errorCString)
-                openmpt_free_string(errorCString)
-                throw ModuleError(error: error, message: errorString)
-            } else {
-                throw ModuleError(error: error, message: "(nil string)")
+            try checkErrorString()
+        }
+    }
+    
+    init(data: Data) throws {
+        self.error = OPENMPT_ERROR_OK
+        // XXX: Deprecated
+        try data.withUnsafeBytes { bufferPtr in
+            underlying = openmpt_module_create_from_memory2(bufferPtr,
+                                                            data.count,
+                                                            openmptLog,
+                                                            nil, // can't take self here
+                                                            openmptError,
+                                                            nil, // or here
+                                                            &error,
+                                                            &errorCString,
+                                                            nil)
+            if underlying == nil {
+                try checkErrorString()
             }
         }
     }
