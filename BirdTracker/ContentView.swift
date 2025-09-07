@@ -128,7 +128,10 @@ struct ContentView: View {
                 Slider(value: Binding(get: {
                     moduleState.position
                 }, set: { newValue in
-                    player.seek(time: newValue)
+                    moduleState.seek(time: newValue)
+                    if self.module == player.currentModule {
+                        player.updateNowPlaying()
+                    }
                 }), in: 0...moduleState.duration) {
                     Text("Position")
                 }

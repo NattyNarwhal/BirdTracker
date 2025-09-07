@@ -43,4 +43,23 @@ import UniformTypeIdentifiers
     var currentPattern: Int32 = 0
     var position: Double = 0
     var duration: Double = 0
+    
+    func update() {
+        self.currentRow = module.currentRow
+        self.currentOrder = module.currentOrder
+        self.currentPattern = module.currentPattern
+        self.position = module.position
+    }
+    
+    func seek(time: TimeInterval) {
+        self.module.position = time
+        // if paused
+        self.update()
+    }
+    
+    func seek(order: Int32, row: Int32) {
+        self.module.setPosition(order: order, row: row)
+        // if paused
+        self.update()
+    }
 }

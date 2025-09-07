@@ -21,7 +21,10 @@ struct PatternViewer: View {
     
     func updatePosition(row: Int32?) {
         if let row {
-            player.seek(order: pattern.module.currentOrder, row: row)
+            moduleState.seek(order: pattern.module.currentOrder, row: row)
+            if pattern.module == player.currentModule {
+                player.updateNowPlaying()
+            }
         }
     }
     

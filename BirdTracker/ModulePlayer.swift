@@ -61,25 +61,15 @@ import SwiftUI
             
             // Or we gunk up the audio thread
             DispatchQueue.main.async {
-                if let moduleState = self.currentModuleState {
-                    // TODO: Check if this is because of an error of end of module
-                    if count == 0 {
-                        // We can't stop the audio thread from the audio thread,
-                        // otherwise "ERROR, attempting to cleanup while rendering"
-                        self.stop()
-                        // Reset position (and then move onto next track)
-                        moduleState.module.position = 0
-                        moduleState.position = 0
-                        moduleState.currentRow = module.currentRow
-                        moduleState.currentOrder = module.currentOrder
-                        moduleState.currentPattern = module.currentPattern
-                    } else {
-                        moduleState.currentRow = module.currentRow
-                        moduleState.currentOrder = module.currentOrder
-                        moduleState.currentPattern = module.currentPattern
-                        moduleState.position = module.position
-                    }
+                // TODO: Check if this is because of an error of end of module
+                if let moduleState = self.currentModuleState, count == 0 {
+                    // We can't stop the audio thread from the audio thread,
+                    // otherwise "ERROR, attempting to cleanup while rendering"
+                    self.stop()
+                    // Reset position (and then move onto next track)
+                    moduleState.module.position = 0
                 }
+                self.currentModuleState?.update()
             }
             
             return noErr
@@ -94,6 +84,9 @@ import SwiftUI
         // this is sent sometimes as a toggle, i.e. from keyboard
         remoteCentre.playCommand.isEnabled = true
         remoteCentre.playCommand.addTarget { event in
+            if self.currentModuleState == nil {
+                return .noActionableNowPlayingItem
+            }
             if self.playing {
                 self.pause()
             } else {
@@ -103,11 +96,17 @@ import SwiftUI
         }
         remoteCentre.pauseCommand.isEnabled = true
         remoteCentre.pauseCommand.addTarget { event in
+            if self.currentModuleState == nil {
+                return .noActionableNowPlayingItem
+            }
             self.pause()
             return .success
         }
         remoteCentre.stopCommand.isEnabled = true
         remoteCentre.stopCommand.addTarget { event in
+            if self.currentModuleState == nil {
+                return .noActionableNowPlayingItem
+            }
             self.currentModuleState = nil
             self.stop()
             return .success
@@ -115,12 +114,11 @@ import SwiftUI
         remoteCentre.changePlaybackPositionCommand.isEnabled = true
         remoteCentre.changePlaybackPositionCommand.addTarget { event in
             let seekEvent = event as! MPChangePlaybackPositionCommandEvent
-            if let currentModuleState = self.currentModuleState {
-                currentModuleState.module.position = seekEvent.positionTime
-                currentModuleState.position = seekEvent.positionTime
-                return .success
+            if self.currentModuleState == nil {
+                return .noActionableNowPlayingItem
             }
-            return .noActionableNowPlayingItem
+            self.seek(time: seekEvent.positionTime)
+            return .success
         }
     }
     
@@ -151,19 +149,7 @@ import SwiftUI
     
     func seek(time: TimeInterval) {
         if let currentModuleState {
-            currentModuleState.module.position = time
-            currentModuleState.position = time // if paused
-            updateNowPlaying()
-        }
-    }
-    
-    func seek(order: Int32, row: Int32) {
-        if let currentModuleState {
-            currentModuleState.module.setPosition(order: order, row: row)
-            // if paused
-            currentModuleState.position = currentModuleState.module.position
-            currentModuleState.currentOrder = order
-            currentModuleState.currentRow = row
+            currentModuleState.seek(time: time)
             updateNowPlaying()
         }
     }
