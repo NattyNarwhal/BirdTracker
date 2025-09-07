@@ -11,8 +11,6 @@ import openmpt
 struct ContentView: View {
     @Environment(\.player) private var player
     
-    @State var showInspector = false
-    
     var moduleState: ModuleState
     
     var module: Module {
@@ -78,7 +76,7 @@ struct ContentView: View {
                     field(label: "Speed", number: module.currentSpeed)
                     field(label: "Tempo", number: module.currentTempo)
                 }
-                .fixedSize()
+                .formStyle(.columns)
                 if let message = module.metadata["message_raw"] {
                     // TODO: Alignment of this is weird.
                     ScrollView([.horizontal, .vertical]) {
@@ -92,6 +90,48 @@ struct ContentView: View {
                     .scrollIndicators(.visible)
                 }
             }
+            .padding()
+        }
+    }
+    
+    struct PatternsView: View {
+        let moduleState: ModuleState
+        
+        var body: some View {
+            Table(moduleState.module.patterns) {
+                TableColumn("ID") {
+                    Text(String($0.id))
+                }
+                TableColumn("Name", value: \.name)
+            }
+        }
+    }
+    
+    struct SamplesView: View {
+        let moduleState: ModuleState
+        
+        var body: some View {
+            List(moduleState.module.samples) {
+                Text($0.name)
+                    .textSelection(.enabled)
+                    .listRowSeparator(.hidden)
+            }
+            .scrollContentBackground(.hidden)
+            .monospaced()
+        }
+    }
+    
+    struct InstrumentsView: View {
+        let moduleState: ModuleState
+        
+        var body: some View {
+            List(moduleState.module.instruments) {
+                Text($0.name)
+                    .textSelection(.enabled)
+                    .listRowSeparator(.hidden)
+            }
+            .scrollContentBackground(.hidden)
+            .monospaced()
         }
     }
     
@@ -133,6 +173,17 @@ struct ContentView: View {
         }
     }
     
+    enum InspectorMode {
+        case none
+        case orders
+        case patterns
+        case samples
+        case instruments
+        case metadata
+    }
+    
+    @State var inspectorMode: InspectorMode = .none
+    
     var body: some View {
         // subtitle used for displaying time and position
         let subtitle = "\(String(timeInterval: moduleState.position))/\(String(timeInterval: moduleState.duration)) \(moduleState.currentPattern)/\(moduleState.currentRow)"
@@ -141,51 +192,19 @@ struct ContentView: View {
             let pattern = module.patterns[Int(moduleState.currentPattern)]
             PatternViewer(moduleState: moduleState, pattern: pattern, highlightedRow: moduleState.currentRow)
                 .environment(\.player, player)
-                .inspector(isPresented: $showInspector) {
-                    TabView {
+                .inspector(isPresented: Binding(get: { self.inspectorMode != .none }, set: { _ in })) {
+                    if inspectorMode == .orders {
                         OrdersView(moduleState: moduleState)
-                        .environment(\.player, player)
-                        .tabItem {
-                            Text("Sequences")
-                        }
-                        List(module.patterns) {
-                            Text($0.name)
-                                .textSelection(.enabled)
-                                .listRowSeparator(.hidden)
-                        }
-                        .scrollContentBackground(.hidden)
-                        .tabItem {
-                            Text("Patterns")
-                        }
-                        List(module.samples) {
-                            Text($0.name)
-                                .textSelection(.enabled)
-                                .listRowSeparator(.hidden)
-                        }
-                        .scrollContentBackground(.hidden)
-                        .monospaced()
-                        .tabItem {
-                            Text("Samples")
-                        }
-                        if module.instrumentCount > 0 {
-                            List(module.instruments) {
-                                Text($0.name)
-                                    .textSelection(.enabled)
-                                    .listRowSeparator(.hidden)
-                            }
-                            .scrollContentBackground(.hidden)
-                            .monospaced()
-                            .tabItem {
-                                Text("Instruments")
-                            }
-                        }
+                            .environment(\.player, player)
+                    } else if inspectorMode == .patterns {
+                        PatternsView(moduleState: moduleState)
+                    } else if inspectorMode == .samples {
+                        SamplesView(moduleState: moduleState)
+                    } else if inspectorMode == .instruments {
+                        InstrumentsView(moduleState: moduleState)
+                    } else if inspectorMode == .metadata {
                         MetadataView(module: module)
-                        .padding()
-                        .tabItem {
-                            Text("Metadata")
-                        }
                     }
-                    .tabViewStyle(.grouped)
                 }
         }
         .toolbar {
@@ -228,7 +247,20 @@ struct ContentView: View {
                 .frame(minWidth: 200)
             }
             ToolbarItem(id: "inspector") {
-                Toggle(isOn: $showInspector) {
+                Menu {
+                    Picker(selection: $inspectorMode) {
+                        Text("None").tag(InspectorMode.none)
+                        Text("Sequences").tag(InspectorMode.orders)
+                        Text("Patterns").tag(InspectorMode.patterns)
+                        Text("Samples").tag(InspectorMode.samples)
+                        if module.instrumentCount > 0 {
+                            Text("Instruments").tag(InspectorMode.instruments)
+                        }
+                        Text("Metadata").tag(InspectorMode.metadata)
+                    } label: {
+                    }
+                    .pickerStyle(.inline)
+                } label: {
                     Label("Inspector", systemImage: "info.circle")
                 }
             }
@@ -242,5 +274,6 @@ struct ContentView: View {
         }
         .navigationSubtitle(subtitle)
         .focusedSceneValue(\.focusedModule, moduleState)
+        .focusedSceneValue(\.focusedInspectorMode, $inspectorMode)
     }
 }
