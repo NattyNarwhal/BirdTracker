@@ -197,7 +197,7 @@ class Module: Equatable {
     
     lazy var channels: [Channel]  = {
         var channels: [Channel] = []
-        for i in 0...channelCount {
+        for i in 0...channelCount-1 {
             let cString = openmpt_module_get_channel_name(underlying, i)!
             let name = String(cString: cString)
             channels.append(Channel(id: i, name: name.isEmpty ? "Channel \(i)" : name))
@@ -218,7 +218,7 @@ class Module: Equatable {
     
     lazy var instruments: [Instrument]  = {
         var instruments: [Instrument] = []
-        for i in 0...instrumentCount {
+        for i in 0...instrumentCount-1 {
             let cString = openmpt_module_get_instrument_name(underlying, i)!
             let name = String(cString: cString)
             instruments.append(Instrument(id: i, name: name))
@@ -239,7 +239,7 @@ class Module: Equatable {
     
     lazy var samples: [Sample] =  {
         var samples: [Sample] = []
-        for i in 0...sampleCount {
+        for i in 0...sampleCount-1 {
             let cString = openmpt_module_get_sample_name(underlying, i)!
             let name = String(cString: cString)
             samples.append(Sample(id: i, name: name))
@@ -282,7 +282,7 @@ class Module: Equatable {
     lazy var patterns: [Pattern] = {
         let count = openmpt_module_get_num_patterns(underlying)
         var patterns: [Pattern] = []
-        for i in 0...count {
+        for i in 0...count-1 {
             patterns.append(Pattern(module: self, index: i))
         }
         return patterns
