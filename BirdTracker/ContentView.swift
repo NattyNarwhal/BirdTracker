@@ -40,6 +40,8 @@ struct ContentView: View {
                     TabView {
                         List(module.samples) {
                             Text($0.name)
+                                .textSelection(.enabled)
+                                .listRowSeparator(.hidden)
                         }
                         .scrollContentBackground(.hidden)
                         .monospaced()
@@ -49,6 +51,8 @@ struct ContentView: View {
                         if module.instrumentCount > 0 {
                             List(module.instruments) {
                                 Text($0.name)
+                                    .textSelection(.enabled)
+                                    .listRowSeparator(.hidden)
                             }
                             .scrollContentBackground(.hidden)
                             .monospaced()
