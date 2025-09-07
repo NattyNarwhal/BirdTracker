@@ -10,23 +10,17 @@ import AVFAudio
 import SwiftUI
 
 @Observable class ModulePlayer {
-    var currentModule: Module? {
-        didSet {
+    var currentModuleState: ModuleState? {
+        willSet {
             self.stop()
-            if let currentModule = self.currentModule {
-                self.duration = currentModule.duration
-            }
         }
     }
     
-    var playing = false
+    var currentModule: Module? {
+        currentModuleState?.module
+    }
     
-    // Updated by the callback, as the callback is variable based on tempo
-    var currentRow: Int32 = 0
-    var currentOrder: Int32 = 0
-    var currentPattern: Int32 = 0
-    var position: Double = 0
-    var duration: Double = 0
+    var playing = false
     
     var volume: Float {
         get {
@@ -61,10 +55,12 @@ import SwiftUI
             
             // Or we gunk up the audio thread
             DispatchQueue.main.async {
-                self.currentRow = module.currentRow
-                self.currentOrder = module.currentOrder
-                self.currentPattern = module.currentPattern
-                self.position = module.position
+                if let moduleState = self.currentModuleState {
+                    moduleState.currentRow = module.currentRow
+                    moduleState.currentOrder = module.currentOrder
+                    moduleState.currentPattern = module.currentPattern
+                    moduleState.position = module.position
+                }
             }
             
             return noErr
@@ -94,8 +90,6 @@ import SwiftUI
     }
     
     func stop() {
-        self.currentRow = 0
-        self.currentPattern = 0
         playing = false
         engine.stop()
     }

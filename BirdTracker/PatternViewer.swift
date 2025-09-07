@@ -10,6 +10,7 @@ import SwiftUI
 struct PatternViewer: View {
     @Environment(\.player) private var player
     
+    let moduleState: ModuleState
     let pattern: Module.Pattern
     
     let highlightedRow: Int32
@@ -20,8 +21,8 @@ struct PatternViewer: View {
     
     func updatePosition(row: Int32?) {
         if let row {
-            pattern.module.setPosition(order: player.currentOrder, row: row)
-            player.currentRow = row // if paused
+            pattern.module.setPosition(order: pattern.module.currentOrder, row: row)
+            moduleState.currentRow = row // if paused
         }
     }
     

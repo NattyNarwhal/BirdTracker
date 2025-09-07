@@ -36,7 +36,7 @@ struct ModuleError: Error {
 
 // #MARK: - Class
 
-class Module {
+class Module: Equatable {
     var underlying: OpaquePointer!
     
     var fileHandle: FileHandle?
@@ -111,6 +111,10 @@ class Module {
     
     deinit {
         openmpt_module_destroy(underlying)
+    }
+    
+    static func == (lhs: Module, rhs: Module) -> Bool {
+        lhs.underlying == rhs.underlying
     }
     
     // #MARK: - Reading

@@ -12,9 +12,25 @@ struct BirdTrackerApp: App {
     @State var player = ModulePlayer()
     
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        DocumentGroup(viewing: ModuleState.self) { file in
+            ContentView(moduleState: file.document)
                 .environment(\.player, player)
+        }
+        .commands {
+            CommandMenu("Playback") {
+                let moduleLoaded = player.currentModuleState != nil
+                if moduleLoaded && player.playing {
+                    Button("Pause") {
+                        player.pause()
+                    }
+                    .keyboardShortcut(.space, modifiers: [])
+                } else if moduleLoaded {
+                    Button("Play") {
+                        player.play()
+                    }
+                    .keyboardShortcut(.space, modifiers: [])
+                }
+            }
         }
     }
 }

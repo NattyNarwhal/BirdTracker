@@ -11,75 +11,64 @@ import openmpt
 struct ContentView: View {
     @Environment(\.player) private var player
     
-    @State var showOpenDialog = false
+    var moduleState: ModuleState
+    
+    var module: Module {
+        moduleState.module
+    }
     
     var body: some View {
         VStack {
-            Button {
-                showOpenDialog = true
-            } label: {
-                Text("Load")
-            }
-            .fileImporter(isPresented: $showOpenDialog, allowedContentTypes: Module.supportedTypes()) { result in
-                switch result {
-                case .success(let resultURL):
-                    if let handle = try? FileHandle(forReadingFrom: resultURL),
-                       let module = try? Module(fileHandle: handle) {
-                        player.currentModule = module
+            HStack {
+                Button {
+                    if player.currentModule != moduleState.module {
+                        player.currentModuleState = moduleState
                     }
-                default:
-                    break
+                    player.play()
+                } label: {
+                    Text("Play")
                 }
-                showOpenDialog = false
+                Button {
+                    player.pause()
+                } label: {
+                    Text("Pause")
+                }
+                // as we can't bind directly to player
+                Slider(value: Binding(get: {
+                    moduleState.position
+                }, set: { newValue in
+                    moduleState.module.position = newValue
+                    moduleState.position = newValue // if paused
+                }), in: 0...moduleState.duration)
+                Slider(value: Binding(get: {
+                    player.volume
+                }, set: { newValue in
+                    player.volume = newValue
+                }), in: 0...1)
             }
-            Button {
-                player.play()
-            } label: {
-                Text("Play")
-            }
-            Button {
-                player.pause()
-            } label: {
-                Text("Pause")
-            }
-            // as we can't bind directly to player
-            Slider(value: Binding(get: {
-                player.position
-            }, set: { newValue in
-                player.currentModule?.position = newValue
-                player.position = newValue // if paused
-            }), in: 0...player.duration)
-            Slider(value: Binding(get: {
-                player.volume
-            }, set: { newValue in
-                player.volume = newValue
-            }), in: 0...1)
-            if let module = player.currentModule {
-                TabView {
-                    List(module.samples) {
+            TabView {
+                List(module.samples) {
+                    Text($0.name)
+                }
+                .monospaced()
+                .tabItem {
+                    Text("Samples")
+                }
+                if module.instrumentCount > 0 {
+                    List(module.instruments) {
                         Text($0.name)
                     }
                     .monospaced()
                     .tabItem {
-                        Text("Samples")
-                    }
-                    if module.instrumentCount > 0 {
-                        List(module.instruments) {
-                            Text($0.name)
-                        }
-                        .monospaced()
-                        .tabItem {
-                            Text("Instruments")
-                        }
+                        Text("Instruments")
                     }
                 }
-                .tabViewStyle(.grouped)
             }
-            Text("\(player.currentPattern)/\(player.currentRow)")
-            if let pattern = player.currentModule?.patterns[Int(player.currentPattern)] {
-                PatternViewer(pattern: pattern, highlightedRow: player.currentRow)
-                    .environment(\.player, player)
-            }
+            .tabViewStyle(.grouped)
+            Text("\(moduleState.currentPattern)/\(moduleState.currentRow)")
+            let pattern = module.patterns[Int(moduleState.currentPattern)]
+            PatternViewer(moduleState: moduleState, pattern: pattern, highlightedRow: moduleState.currentRow)
+                .environment(\.player, player)
         }
         .padding()
     }
