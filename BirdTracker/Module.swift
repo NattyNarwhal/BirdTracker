@@ -247,6 +247,29 @@ class Module: Equatable {
         return samples
     }()
     
+    // #MARK: - Orders
+    
+    struct Order: Identifiable, Hashable {
+        let id: Int32
+        let name: String
+        let pattern: Int32
+    }
+    
+    lazy var orderCount: Int32 = {
+        return openmpt_module_get_num_orders(underlying)
+    }()
+    
+    lazy var orders: [Order] =  {
+        var orders: [Order] = []
+        for i in 0...sampleCount-1 {
+            let cString = openmpt_module_get_order_name(underlying, i)!
+            let name = String(cString: cString)
+            let pattern = openmpt_module_get_order_pattern(underlying, i)
+            orders.append(Order(id: i, name: name, pattern: pattern))
+        }
+        return orders
+    }()
+    
     // #MARK: - Patterns
     
     struct Pattern: Identifiable {
