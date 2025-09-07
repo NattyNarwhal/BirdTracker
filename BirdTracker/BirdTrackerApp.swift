@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct BirdTrackerApp: App {
-    @State var player = ModulePlayer()
+    @Environment(\.player) private var player
     
     @FocusedValue(\.focusedModule) private var focusedModule
     

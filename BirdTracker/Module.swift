@@ -287,4 +287,31 @@ class Module: Equatable {
         }
         return patterns
     }
+    
+    // #MARK: - Metadata
+    
+    private func getMetadata(key: String) -> String? {
+        return key.utf8CString.withUnsafeBufferPointer { bufferPtr in
+            if let ptr = bufferPtr.baseAddress, let cString = openmpt_module_get_metadata(self.underlying, ptr) {
+                let string = String(cString: cString)
+                return string.isEmpty ? nil : string
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    private func supportedMetadata() -> [String] {
+        let keysCString = openmpt_module_get_metadata_keys(underlying)!
+        let keysString = String(cString: keysCString)
+        return keysString.split(separator: ";").map { String($0) }
+    }
+    
+    lazy var metadata: [String: String] = {
+        var metadata: [String: String] = [:]
+        for key in supportedMetadata() {
+            metadata[key] = getMetadata(key: key)
+        }
+        return metadata
+    }()
 }

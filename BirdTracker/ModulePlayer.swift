@@ -6,13 +6,14 @@
 //
 
 import Foundation
-import AVFAudio
+import AVFoundation
+import MediaPlayer
 import SwiftUI
 
 @Observable class ModulePlayer {
     var currentModuleState: ModuleState? {
-        willSet {
-            self.stop()
+        didSet {
+            updateNowPlaying()
         }
     }
     
@@ -20,7 +21,11 @@ import SwiftUI
         currentModuleState?.module
     }
     
-    var playing = false
+    var playing = false {
+        didSet {
+            updateNowPlaying()
+        }
+    }
     
     var volume: Float {
         get {
@@ -37,6 +42,7 @@ import SwiftUI
     private let format = AVAudioFormat(standardFormatWithSampleRate: 48000, channels: 2)
     
     init() {
+        // #MARK: AVFoundation setup
         self.sourceNode = AVAudioSourceNode(format: format!, renderBlock: { silence, timestamp, frameCount, buffers in
             guard let module = self.currentModule else {
                 print("Ope, no module")
@@ -82,6 +88,40 @@ import SwiftUI
         engine.attach(sourceNode)
         engine.connect(sourceNode, to: engine.mainMixerNode, format: format)
         engine.prepare()
+        
+        // #MARK: MPRemoteCommandCenter setup
+        let remoteCentre = MPRemoteCommandCenter.shared()
+        // this is sent sometimes as a toggle, i.e. from keyboard
+        remoteCentre.playCommand.isEnabled = true
+        remoteCentre.playCommand.addTarget { event in
+            if self.playing {
+                self.pause()
+            } else {
+                self.play()
+            }
+            return .success
+        }
+        remoteCentre.pauseCommand.isEnabled = true
+        remoteCentre.pauseCommand.addTarget { event in
+            self.pause()
+            return .success
+        }
+        remoteCentre.stopCommand.isEnabled = true
+        remoteCentre.stopCommand.addTarget { event in
+            self.currentModuleState = nil
+            self.stop()
+            return .success
+        }
+        remoteCentre.changePlaybackPositionCommand.isEnabled = true
+        remoteCentre.changePlaybackPositionCommand.addTarget { event in
+            let seekEvent = event as! MPChangePlaybackPositionCommandEvent
+            if let currentModuleState = self.currentModuleState {
+                currentModuleState.module.position = seekEvent.positionTime
+                currentModuleState.position = seekEvent.positionTime
+                return .success
+            }
+            return .noActionableNowPlayingItem
+        }
     }
     
     func play() {
@@ -97,6 +137,8 @@ import SwiftUI
         playing = true
     }
     
+    // #MARK: - Playback controls
+    
     func pause() {
         playing = false
         engine.stop()
@@ -105,5 +147,57 @@ import SwiftUI
     func stop() {
         playing = false
         engine.stop()
+    }
+    
+    func seek(time: TimeInterval) {
+        if let currentModuleState {
+            currentModuleState.module.position = time
+            currentModuleState.position = time // if paused
+            updateNowPlaying()
+        }
+    }
+    
+    func seek(order: Int32, row: Int32) {
+        if let currentModuleState {
+            currentModuleState.module.setPosition(order: order, row: row)
+            // if paused
+            currentModuleState.position = currentModuleState.module.position
+            currentModuleState.currentOrder = order
+            currentModuleState.currentRow = row
+            updateNowPlaying()
+        }
+    }
+    
+    // #MARK: - MPNowPlayingInfoCenter
+    
+    func updateNowPlaying() {
+        let npic = MPNowPlayingInfoCenter.default()
+        let centre = MPNowPlayingInfoCenter.default()
+        var songInfo: [String: Any] = [:]
+        
+        if playing {
+            centre.playbackState = .playing
+        } else if currentModule != nil {
+            centre.playbackState = .paused
+        } else {
+            centre.playbackState = .stopped
+        }
+        
+        if let currentModule {
+            songInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = NSNumber(value: currentModule.position)
+            songInfo[MPMediaItemPropertyPlaybackDuration] = NSNumber(value: currentModule.duration)
+            
+            if let title = currentModule.metadata["title"] {
+                songInfo[MPMediaItemPropertyTitle] = title
+            }
+            if let artist = currentModule.metadata["artist"] {
+                songInfo[MPMediaItemPropertyArtist] = artist
+            }
+            if let savedDateISO8601 = currentModule.metadata["date"] {
+                let dateParser = ISO8601DateFormatter()
+                songInfo[MPMediaItemPropertyReleaseDate] = dateParser.date(from: savedDateISO8601)
+            }
+        }
+        npic.nowPlayingInfo = songInfo
     }
 }

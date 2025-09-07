@@ -21,8 +21,7 @@ struct PatternViewer: View {
     
     func updatePosition(row: Int32?) {
         if let row {
-            pattern.module.setPosition(order: pattern.module.currentOrder, row: row)
-            moduleState.currentRow = row // if paused
+            player.seek(order: pattern.module.currentOrder, row: row)
         }
     }
     
