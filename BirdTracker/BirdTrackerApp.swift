@@ -11,6 +11,8 @@ import SwiftUI
 struct BirdTrackerApp: App {
     @State var player = ModulePlayer()
     
+    @FocusedValue(\.focusedModule) private var focusedModule
+    
     var body: some Scene {
         DocumentGroup(viewing: ModuleState.self) { file in
             ContentView(moduleState: file.document)
@@ -29,7 +31,22 @@ struct BirdTrackerApp: App {
                         player.play()
                     }
                     .keyboardShortcut(.space, modifiers: [])
+                } else if let focusedModule {
+                    Button("Play") {
+                        player.currentModuleState = focusedModule
+                        player.play()
+                    }
+                    .keyboardShortcut(.space, modifiers: [])
+                } else {
+                    Button("Play") { }
+                    .keyboardShortcut(.space, modifiers: [])
+                    .disabled(true)
                 }
+                Button("Stop") {
+                    player.currentModuleState = nil
+                }
+                .keyboardShortcut(".")
+                .disabled(!moduleLoaded)
             }
         }
     }
@@ -44,4 +61,15 @@ extension EnvironmentValues {
 
 private struct PlayerKey: EnvironmentKey {
     static let defaultValue: ModulePlayer = ModulePlayer()
+}
+
+extension FocusedValues {
+    var focusedModule: ModuleState? {
+        get { self[FocusedModuleKey.self] }
+        set { self[FocusedModuleKey.self] = newValue }
+    }
+}
+
+private struct FocusedModuleKey: FocusedValueKey {
+    typealias Value = ModuleState
 }

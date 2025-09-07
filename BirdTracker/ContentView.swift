@@ -70,6 +70,7 @@ struct ContentView: View {
             PatternViewer(moduleState: moduleState, pattern: pattern, highlightedRow: moduleState.currentRow)
                 .environment(\.player, player)
         }
+        .focusedSceneValue(\.focusedModule, moduleState)
         .padding()
     }
 }
