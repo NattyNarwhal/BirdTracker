@@ -32,7 +32,7 @@ import UniformTypeIdentifiers
     
     // XXX: SwiftUI doesn't let us have real viewers
     func fileWrapper(snapshot: Module, configuration: WriteConfiguration) throws -> FileWrapper {
-        throw CocoaError(.fileWriteUnknown)
+        configuration.existingFile!
     }
     
     var module: Module!
