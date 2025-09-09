@@ -15,10 +15,6 @@ struct PatternViewer: View {
     
     let highlightedRow: Int32
     
-    struct Row: Identifiable {
-        let id: Int32
-    }
-    
     func updatePosition(row: Int32?) {
         if let row {
             moduleState.seek(order: pattern.module.currentOrder, row: row)
@@ -29,20 +25,20 @@ struct PatternViewer: View {
     }
     
     var body: some View {
-        let channels = pattern.module.channels
-        let rows = (0...pattern.rows).map { Row(id: $0) }
-        // This feels really awkward
         ScrollViewReader { proxy in
-            Table(of: Row.self, selection: Binding(get: { return highlightedRow }, set: { newValue in updatePosition(row: newValue) })) {
-                TableColumnForEach(channels) { channel in
-                    TableColumn(channel.name) { (row: Row) in
-                        let formatted = pattern.formatted(row: row.id, channel: channel.id)
+            Table(of: Module.PatternRow.self, selection: Binding(get: { return highlightedRow }, set: { newValue in updatePosition(row: newValue) })) {
+                TableColumn("Row") { (row: Module.PatternRow) in
+                    Text(String(row.id, radix: 16, uppercase: true))
+                }
+                .width(30)
+                TableColumnForEach(pattern.module.channels) { channel in
+                    TableColumn(channel.name) { (row: Module.PatternRow) in
                         // For now, this just uses the OpenMPT formatted text, but we could provide a richer thing here
-                        Text(formatted)
+                        Text(row.cells[Int(channel.id)].formatted)
                     }
                 }
             } rows: {
-                ForEach(rows) { row in
+                ForEach(pattern.rows) { (row: Module.PatternRow) in
                     TableRow(row)
                 }
             }

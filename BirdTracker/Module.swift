@@ -272,28 +272,49 @@ class Module: Equatable {
     
     // #MARK: - Patterns
     
+    struct PatternCell: Identifiable {
+        let id: Int32
+        let formatted: String
+    }
+    
+    struct PatternRow: Identifiable {
+        let id: Int32
+        let cells: [PatternCell]
+    }
+    
     struct Pattern: Identifiable {
         weak var module: Module!
         
         let id: Int32
         let name: String
         
-        let rows: Int32
+        let rowCount: Int32
         let rowsPerBeat: Int32
         let rowsPerMeasure: Int32
         
         let isSkip: Bool
         let isStop: Bool
         
+        let rows: [PatternRow]
+        
         init(module: Module, index i: Int32) {
             self.module = module
             self.id = i
             self.name = String(cString: openmpt_module_get_pattern_name(module.underlying, i))
-            self.rows = openmpt_module_get_pattern_num_rows(module.underlying, i)
+            self.rowCount = openmpt_module_get_pattern_num_rows(module.underlying, i)
             self.rowsPerBeat = openmpt_module_get_pattern_rows_per_beat(module.underlying, i)
             self.rowsPerMeasure = openmpt_module_get_pattern_rows_per_measure(module.underlying, i)
             self.isSkip = openmpt_module_is_pattern_skip_item(module.underlying, i) != 0
             self.isStop = openmpt_module_is_pattern_stop_item(module.underlying, i) != 0
+            
+            // Precompute all the cells
+            self.rows = (0...rowCount-1).map { row in
+                PatternRow(id: row, cells: (0...module.channelCount-1).map { channel in
+                    let formattedCString = openmpt_module_format_pattern_row_channel(module.underlying, i, row, channel, 0, 0)!
+                    let formatted = String(cString: formattedCString)
+                    return PatternCell(id: channel, formatted: formatted)
+                })
+            }
         }
         
         func formatted(row: Int32, channel: Int32, width: Int = 0, pad: Bool = false) -> String {
