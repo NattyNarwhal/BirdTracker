@@ -272,17 +272,26 @@ class Module: Equatable {
     
     // #MARK: - Patterns
     
-    struct PatternCell: Identifiable {
-        let id: Int32
+    struct PatternCell: Identifiable, Equatable {
+        // Made unique across different rows in case of i.e. LazyVGrid
+        let id: Int64
         let formatted: String
+        
+        static func == (lhs: PatternCell, rhs: PatternCell) -> Bool {
+            lhs.id == rhs.id
+        }
     }
     
-    struct PatternRow: Identifiable {
+    struct PatternRow: Identifiable, Equatable {
         let id: Int32
         let cells: [PatternCell]
+        
+        static func == (lhs: PatternRow, rhs: PatternRow) -> Bool {
+            lhs.id == rhs.id
+        }
     }
     
-    struct Pattern: Identifiable {
+    struct Pattern: Identifiable, Equatable {
         weak var module: Module!
         
         let id: Int32
@@ -297,6 +306,10 @@ class Module: Equatable {
         
         let rows: [PatternRow]
         
+        static func == (lhs: Pattern, rhs: Pattern) -> Bool {
+            lhs.id == rhs.id && lhs.module == rhs.module
+        }
+        
         init(module: Module, index i: Int32) {
             self.module = module
             self.id = i
@@ -310,9 +323,10 @@ class Module: Equatable {
             // Precompute all the cells
             self.rows = (0...rowCount-1).map { row in
                 PatternRow(id: row, cells: (0...module.channelCount-1).map { channel in
-                    let formattedCString = openmpt_module_format_pattern_row_channel(module.underlying, i, row, channel, 0, 0)!
+                    let formattedCString = openmpt_module_format_pattern_row_channel(module.underlying, i, row, channel, 16, 1)!
                     let formatted = String(cString: formattedCString)
-                    return PatternCell(id: channel, formatted: formatted)
+                    let cellID = (Int64(channel) << 32) | Int64(row)
+                    return PatternCell(id: cellID, formatted: formatted)
                 })
             }
         }
