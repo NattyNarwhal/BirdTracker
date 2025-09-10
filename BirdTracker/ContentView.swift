@@ -188,6 +188,7 @@ struct ContentView: View {
     }
     
     @State var inspectorMode: InspectorMode = .none
+    @State var patternCellZoom: PatternViewer.PatternCellZoom = .full
     
     var body: some View {
         // subtitle used for displaying time and position
@@ -195,7 +196,13 @@ struct ContentView: View {
         
         VStack {
             let pattern = module.patterns[Int(moduleState.currentPattern)]
-            PatternViewer(moduleState: moduleState, pattern: pattern, highlightedRow: moduleState.currentRow)
+            PatternViewer(moduleState: moduleState, pattern: pattern, highlightedRow: moduleState.currentRow, zoom: patternCellZoom)
+                .gesture(
+                    MagnifyGesture(minimumScaleDelta: 0.25)
+                        .onChanged { newValue in
+                            self.patternCellZoom = self.patternCellZoom.displacement(value: newValue.magnification)
+                        }
+                )
                 .environment(\.player, player)
                 .inspector(isPresented: Binding(get: { self.inspectorMode != .none }, set: { _ in })) {
                     if inspectorMode == .orders {

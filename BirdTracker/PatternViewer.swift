@@ -25,9 +25,41 @@ struct PatternViewer: View {
         }
     }
     
+    enum PatternCellZoom: Double {
+        case full = 1
+        case noteVolume = 0.50
+        case note = 0
+        
+        func displacement(value: Double) -> PatternCellZoom {
+            print(value)
+            
+            if value > 1.25 {
+                return .full
+            } else if value < 0.75 {
+                return .note
+            } else {
+                return .noteVolume
+            }
+        }
+        
+        var width: CGFloat {
+            switch self {
+            case .noteVolume:
+                90
+            case .note:
+                30
+            default:
+                120
+            }
+        }
+    }
+    
+    let zoom: PatternCellZoom
+    
     var body: some View {
         ScrollViewReader { proxy in
-            Table(of: Module.PatternRow.self, selection: Binding(get: { return highlightedRow }, set: { newValue in updatePosition(row: newValue) })) {
+            Table(of: Module.PatternRow.self, selection: Binding(get: { return highlightedRow },
+                                                                 set: { newValue in updatePosition(row: newValue) })) {
                 TableColumn("Row") { (row: Module.PatternRow) in
                     Text(String(row.id, radix: 16, uppercase: true))
                         .frame(width: 30, height: 16, alignment: .trailing)
@@ -44,19 +76,28 @@ struct PatternViewer: View {
 //                    Text(attributedString)
 //                }
                 TableColumnForEach(pattern.module.channels) { channel in
+                    let width: CGFloat = zoom.width
                     TableColumn(channel.name) { (row: Module.PatternRow) in
-                        // For now, this just uses the OpenMPT formatted text, but we could provide a richer thing here
-                        Text(row.cells[Int(channel.id)].formatted)
-                            .frame(width: 120, height: 16)
+                        let cell: Module.PatternCell = row.cells[Int(channel.id)]
+                        let text: String = switch zoom {
+                        case .noteVolume:
+                            "\(cell.note) \(cell.instrument)\(cell.volumeEffect)\(cell.volume)"
+                        case .note:
+                            cell.note
+                        default:
+                            cell.formatted
+                        }
+                        Text(text)
                             .fixedSize()
                     }
-                    .width(120)
+                    .width(width)
                 }
             } rows: {
                 ForEach(pattern.rows) { (row: Module.PatternRow) in
                     TableRow(row)
                 }
             }
+            .id(pattern.id) // or it won't update the rows on pattern change
             .monospaced()
             .onChange(of: highlightedRow) { _, newValue in
                 proxy.scrollTo(highlightedRow, anchor: .center)

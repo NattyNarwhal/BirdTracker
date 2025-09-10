@@ -200,7 +200,7 @@ class Module: Equatable {
         for i in 0...channelCount-1 {
             let cString = openmpt_module_get_channel_name(underlying, i)!
             let name = String(cString: cString)
-            channels.append(Channel(id: i, name: name.isEmpty ? "Channel \(i)" : name))
+            channels.append(Channel(id: i, name: name.isEmpty ? "\(i)" : name))
         }
         return channels
     }()
@@ -275,7 +275,17 @@ class Module: Equatable {
     struct PatternCell: Identifiable, Equatable {
         // Made unique across different rows in case of i.e. LazyVGrid
         let id: Int64
-        let formatted: String
+        
+        let note: String
+        let instrument: String
+        let volumeEffect: String
+        let effect: String
+        let volume: String
+        let parameter: String
+        
+        var formatted: String {
+            "\(note) \(instrument)\(volumeEffect)\(volume) \(effect)\(parameter)"
+        }
         
         static func == (lhs: PatternCell, rhs: PatternCell) -> Bool {
             lhs.id == rhs.id
@@ -321,12 +331,24 @@ class Module: Equatable {
             self.isStop = openmpt_module_is_pattern_stop_item(module.underlying, i) != 0
             
             // Precompute all the cells
-            self.rows = (0...rowCount-1).map { row in
-                PatternRow(id: row, cells: (0...module.channelCount-1).map { channel in
-                    let formattedCString = openmpt_module_format_pattern_row_channel(module.underlying, i, row, channel, 16, 1)!
-                    let formatted = String(cString: formattedCString)
-                    let cellID = (Int64(channel) << 32) | Int64(row)
-                    return PatternCell(id: cellID, formatted: formatted)
+            let channels = module.channelCount - 1
+            let rows = self.rowCount - 1
+            self.rows = (0...rows).map { row in
+                return PatternRow(id: row, cells: (0...channels).map { channel in
+                    let noteCString = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_NOTE)!
+                    let note = String(cString: noteCString)
+                    let instrumentCString  = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_INSTRUMENT)!
+                    let instrument = String(cString: instrumentCString)
+                    let volumeEffectCString  = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_VOLUMEEFFECT)!
+                    let volumeEffect = String(cString: volumeEffectCString)
+                    let effectCString  = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_EFFECT)!
+                    let effect = String(cString: effectCString)
+                    let volumeCString  = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_VOLUME)!
+                    let volume = String(cString: volumeCString)
+                    let parameterCString  = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_PARAMETER)!
+                    let parameter = String(cString: parameterCString)
+                    let cellID = (Int64(row) << 32) | Int64(channel)
+                    return PatternCell(id: cellID, note: note, instrument: instrument, volumeEffect: volumeEffect, effect: effect, volume: volume, parameter: parameter)
                 })
             }
         }
