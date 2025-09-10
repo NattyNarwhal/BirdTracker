@@ -191,8 +191,8 @@ struct ContentView: View {
     @State var patternCellZoom: PatternViewer.PatternCellZoom = .full
     
     var body: some View {
-        // subtitle used for displaying time and position
-        let subtitle = "\(String(timeInterval: moduleState.position))/\(String(timeInterval: moduleState.duration)) \(moduleState.currentPattern)/\(moduleState.currentRow)"
+        // subtitle used for displaying time, order, and pattern
+        let subtitle = "\(String(timeInterval: moduleState.position))/\(String(timeInterval: moduleState.duration)) \(moduleState.currentOrder)/\(module.orderCount) \(moduleState.currentPattern)/\(moduleState.currentRow)"
         
         VStack {
             let pattern = module.patterns[Int(moduleState.currentPattern)]
