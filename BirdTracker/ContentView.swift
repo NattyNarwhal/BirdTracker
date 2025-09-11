@@ -188,7 +188,12 @@ struct ContentView: View {
     }
     
     @State var inspectorMode: InspectorMode = .none
+    // On iOS, default to a denser zoom level
+    #if os(macOS)
     @State var patternCellZoom: PatternViewer.PatternCellZoom = .full
+    #else
+    @State var patternCellZoom: PatternViewer.PatternCellZoom = .note
+    #endif
     
     var body: some View {
         // subtitle used for displaying time, order, and pattern
@@ -204,7 +209,8 @@ struct ContentView: View {
                         }
                 )
                 .environment(\.player, player)
-                .inspector(isPresented: Binding(get: { self.inspectorMode != .none }, set: { _ in })) {
+                .inspector(isPresented: Binding(get: { self.inspectorMode != .none },
+                                                set: { newValue in if !newValue { self.inspectorMode = .none } })) {
                     if inspectorMode == .orders {
                         OrdersView(moduleState: moduleState)
                             .environment(\.player, player)
@@ -220,6 +226,12 @@ struct ContentView: View {
                 }
         }
         .toolbar {
+            #if !os(macOS)
+            ToolbarItem(id: "positionText") {
+                Text(subtitle)
+                    .monospacedDigit()
+            }
+            #endif
             ToolbarItemGroup {
                 if player.playing && player.currentModule == moduleState.module {
                     Button("Pause", systemImage: "pause") {
@@ -284,7 +296,9 @@ struct ContentView: View {
                 $0
             }
         }
+        #if os(macOS)
         .navigationSubtitle(subtitle)
+        #endif
         .focusedSceneValue(\.focusedModule, moduleState)
         .focusedSceneValue(\.focusedInspectorMode, $inspectorMode)
     }
