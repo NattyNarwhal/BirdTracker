@@ -34,6 +34,15 @@ struct ModuleError: Error {
     let message: String
 }
 
+extension String {
+    init(libopenmptString: UnsafePointer<CChar>) {
+        defer {
+            openmpt_free_string(libopenmptString)
+        }
+        self = String(cString: libopenmptString)
+    }
+}
+
 // #MARK: - Class
 
 class Module: Equatable {
@@ -44,8 +53,7 @@ class Module: Equatable {
     // #MARK: - File Types
     
     static func supportedExtensions() -> [String] {
-        let extsCString = openmpt_get_supported_extensions()!
-        let extsString = String(cString: extsCString)
+        let extsString = String(libopenmptString: openmpt_get_supported_extensions()!)
         return extsString.split(separator: ";").map { String($0) }
     }
     
@@ -63,8 +71,7 @@ class Module: Equatable {
     
     private func checkErrorString() throws {
         if let errorCString = self.errorCString {
-            let errorString = String(cString: errorCString)
-            openmpt_free_string(errorCString)
+            let errorString = String(libopenmptString: errorCString)
             throw ModuleError(error: error, message: errorString)
         } else {
             throw ModuleError(error: error, message: "(nil string)")
@@ -198,8 +205,7 @@ class Module: Equatable {
     lazy var channels: [Channel]  = {
         var channels: [Channel] = []
         for i in 0...channelCount-1 {
-            let cString = openmpt_module_get_channel_name(underlying, i)!
-            let name = String(cString: cString)
+            let name = String(libopenmptString: openmpt_module_get_channel_name(underlying, i)!)
             channels.append(Channel(id: i, name: name.isEmpty ? "\(i)" : name))
         }
         return channels
@@ -219,8 +225,7 @@ class Module: Equatable {
     lazy var instruments: [Instrument]  = {
         var instruments: [Instrument] = []
         for i in 0...instrumentCount-1 {
-            let cString = openmpt_module_get_instrument_name(underlying, i)!
-            let name = String(cString: cString)
+            let name = String(libopenmptString: openmpt_module_get_instrument_name(underlying, i)!)
             instruments.append(Instrument(id: i, name: name))
         }
         return instruments
@@ -240,8 +245,7 @@ class Module: Equatable {
     lazy var samples: [Sample] =  {
         var samples: [Sample] = []
         for i in 0...sampleCount-1 {
-            let cString = openmpt_module_get_sample_name(underlying, i)!
-            let name = String(cString: cString)
+            let name = String(libopenmptString: openmpt_module_get_sample_name(underlying, i)!)
             samples.append(Sample(id: i, name: name))
         }
         return samples
@@ -262,8 +266,7 @@ class Module: Equatable {
     lazy var orders: [Order] =  {
         var orders: [Order] = []
         for i in 0...sampleCount-1 {
-            let cString = openmpt_module_get_order_name(underlying, i)!
-            let name = String(cString: cString)
+            let name = String(libopenmptString: openmpt_module_get_order_name(underlying, i)!)
             let pattern = openmpt_module_get_order_pattern(underlying, i)
             orders.append(Order(id: i, name: name, pattern: pattern))
         }
@@ -323,7 +326,7 @@ class Module: Equatable {
         init(module: Module, index i: Int32) {
             self.module = module
             self.id = i
-            self.name = String(cString: openmpt_module_get_pattern_name(module.underlying, i))
+            self.name = String(libopenmptString: openmpt_module_get_pattern_name(module.underlying, i))
             self.rowCount = openmpt_module_get_pattern_num_rows(module.underlying, i)
             self.rowsPerBeat = openmpt_module_get_pattern_rows_per_beat(module.underlying, i)
             self.rowsPerMeasure = openmpt_module_get_pattern_rows_per_measure(module.underlying, i)
@@ -335,27 +338,16 @@ class Module: Equatable {
             let rows = self.rowCount - 1
             self.rows = (0...rows).map { row in
                 return PatternRow(id: row, cells: (0...channels).map { channel in
-                    let noteCString = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_NOTE)!
-                    let note = String(cString: noteCString)
-                    let instrumentCString  = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_INSTRUMENT)!
-                    let instrument = String(cString: instrumentCString)
-                    let volumeEffectCString  = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_VOLUMEEFFECT)!
-                    let volumeEffect = String(cString: volumeEffectCString)
-                    let effectCString  = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_EFFECT)!
-                    let effect = String(cString: effectCString)
-                    let volumeCString  = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_VOLUME)!
-                    let volume = String(cString: volumeCString)
-                    let parameterCString  = openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_PARAMETER)!
-                    let parameter = String(cString: parameterCString)
+                    let note = String(libopenmptString: openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_NOTE)!)
+                    let instrument = String(libopenmptString: openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_INSTRUMENT)!)
+                    let volumeEffect = String(libopenmptString: openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_VOLUMEEFFECT)!)
+                    let effect = String(libopenmptString: openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_EFFECT)!)
+                    let volume = String(libopenmptString: openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_VOLUME)!)
+                    let parameter = String(libopenmptString: openmpt_module_format_pattern_row_channel_command(module.underlying, i, row, channel, OPENMPT_MODULE_COMMAND_PARAMETER)!)
                     let cellID = (Int64(row) << 32) | Int64(channel)
                     return PatternCell(id: cellID, note: note, instrument: instrument, volumeEffect: volumeEffect, effect: effect, volume: volume, parameter: parameter)
                 })
             }
-        }
-        
-        func formatted(row: Int32, channel: Int32, width: Int = 0, pad: Bool = false) -> String {
-            let cString = openmpt_module_format_pattern_row_channel(module.underlying, id, row, channel, width, pad ? 1 : 0)!
-            return String(cString: cString)
         }
     }
     
@@ -373,7 +365,7 @@ class Module: Equatable {
     private func getMetadata(key: String) -> String? {
         return key.utf8CString.withUnsafeBufferPointer { bufferPtr in
             if let ptr = bufferPtr.baseAddress, let cString = openmpt_module_get_metadata(self.underlying, ptr) {
-                let string = String(cString: cString)
+                let string = String(libopenmptString: cString)
                 return string.isEmpty ? nil : string
             } else {
                 return nil
@@ -382,8 +374,7 @@ class Module: Equatable {
     }
     
     private func supportedMetadata() -> [String] {
-        let keysCString = openmpt_module_get_metadata_keys(underlying)!
-        let keysString = String(cString: keysCString)
+        let keysString = String(libopenmptString: openmpt_module_get_metadata_keys(underlying)!)
         return keysString.split(separator: ";").map { String($0) }
     }
     
