@@ -270,6 +270,12 @@ struct ContentView: View {
                 }
                 .frame(minWidth: 200)
             }
+            #if os(iOS)
+            ToolbarItem(id: "routePicker") {
+                // on macOS, this requires picking an AVPlayer
+                RoutePicker()
+            }
+            #endif
             ToolbarItem(id: "inspector") {
                 Menu {
                     Picker(selection: $inspectorMode) {
