@@ -14,28 +14,31 @@ struct BirdTrackerApp: App {
     @FocusedValue(\.focusedModule) private var focusedModule
     @FocusedValue(\.focusedInspectorMode) private var focusedInspectorMode
     
+    // for visionOS inspector window
+    
     var body: some Scene {
         DocumentGroup(viewing: ModuleState.self) { file in
             ContentView(moduleState: file.document)
                 .environment(\.player, player)
         }
         .commands {
+            #if !os(visionOS)
             CommandGroup(before: .sidebar) {
                 if let focusedModule, let focusedInspectorMode {
                     Picker(selection: focusedInspectorMode) {
-                        Text("None").tag(ContentView.InspectorMode.none)
+                        Text("None").tag(InspectorMode.none)
                             .keyboardShortcut("0")
-                        Text("Sequences").tag(ContentView.InspectorMode.orders)
+                        Text("Sequences").tag(InspectorMode.orders)
                             .keyboardShortcut("1")
-                        Text("Patterns").tag(ContentView.InspectorMode.patterns)
+                        Text("Patterns").tag(InspectorMode.patterns)
                             .keyboardShortcut("2")
-                        Text("Samples").tag(ContentView.InspectorMode.samples)
+                        Text("Samples").tag(InspectorMode.samples)
                             .keyboardShortcut("3")
                         if focusedModule.module.instrumentCount > 1 {
-                            Text("Instruments").tag(ContentView.InspectorMode.instruments)
+                            Text("Instruments").tag(InspectorMode.instruments)
                                 .keyboardShortcut("4")
                         }
-                        Text("Metadata").tag(ContentView.InspectorMode.metadata)
+                        Text("Metadata").tag(InspectorMode.metadata)
                             .keyboardShortcut("5")
                     } label: {
                         Label("Inspector", systemImage: "info.circle")
@@ -44,6 +47,7 @@ struct BirdTrackerApp: App {
                     Divider()
                 }
             }
+            #endif
             CommandMenu("Playback") {
                 let moduleLoaded = player.currentModuleState != nil
                 if moduleLoaded && player.playing {
@@ -74,6 +78,15 @@ struct BirdTrackerApp: App {
                 .disabled(!moduleLoaded)
             }
         }
+        
+        #if os(visionOS)
+        WindowGroup(for: ModuleStateRef.self) { $ref in
+            let moduleState = ref!.take()
+            InspectorWindow(moduleState: moduleState)
+        }
+        .windowResizability(.contentSize)
+        .windowStyle(.plain)
+        #endif
     }
 }
 
@@ -93,7 +106,7 @@ extension FocusedValues {
         get { self[FocusedModuleKey.self] }
         set { self[FocusedModuleKey.self] = newValue }
     }
-    var focusedInspectorMode: Binding<ContentView.InspectorMode>? {
+    var focusedInspectorMode: Binding<InspectorMode>? {
         get { self[FocusedInspectorModeKey.self] }
         set { self[FocusedInspectorModeKey.self] = newValue }
     }
@@ -104,5 +117,5 @@ private struct FocusedModuleKey: FocusedValueKey {
 }
 
 private struct FocusedInspectorModeKey: FocusedValueKey {
-    typealias Value = Binding<ContentView.InspectorMode>
+    typealias Value = Binding<InspectorMode>
 }

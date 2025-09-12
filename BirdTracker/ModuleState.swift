@@ -26,6 +26,7 @@ import UniformTypeIdentifiers
         guard let data = configuration.file.regularFileContents else {
             throw CocoaError(.fileReadCorruptFile)
         }
+        self.id = UUID()
         self.module = try Module(data: data)
         self.duration = self.module.duration
     }
@@ -34,6 +35,8 @@ import UniformTypeIdentifiers
     func fileWrapper(snapshot: Module, configuration: WriteConfiguration) throws -> FileWrapper {
         configuration.existingFile!
     }
+    
+    let id: UUID
     
     var module: Module!
     
@@ -73,4 +76,29 @@ import UniformTypeIdentifiers
         // if paused
         self.update()
     }
+}
+
+// Evil wrapper class that just lets us snarf a ModuleState through things that must be Codable
+struct ModuleStateRef: Codable, Hashable {
+    let id: UUID
+    
+    init(moduleState: ModuleState) {
+        self.id = moduleState.id
+        ModuleStateRef.moduleStates[moduleState.id] = Weak(moduleState)
+    }
+    
+    func take() -> ModuleState {
+        return ModuleStateRef.moduleStates[self.id]!.value!
+    }
+    
+    // So we don't end up fouling the lifetimes, because we can't just define weak as an element type
+    class Weak<T: AnyObject> {
+        weak var value: T?
+        
+        init(_ value: T) {
+            self.value = value
+        }
+    }
+    
+    static var moduleStates: [UUID: Weak<ModuleState>] = [:]
 }

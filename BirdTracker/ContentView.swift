@@ -17,176 +17,6 @@ struct ContentView: View {
         moduleState.module
     }
     
-    struct MetadataView: View {
-        let moduleState: ModuleState
-        
-        var module: Module {
-            moduleState.module
-        }
-        
-        @ViewBuilder func field(label: String, string: String) -> some View {
-            LabeledContent {
-                Text(string)
-                    .textSelection(.enabled)
-            } label: {
-                Text(label)
-            }
-        }
-        
-        @ViewBuilder func field(label: String, number: Int32) -> some View {
-            LabeledContent {
-                Text(String(number))
-                    .textSelection(.enabled)
-            } label: {
-                Text(label)
-            }
-        }
-        
-        @ViewBuilder func field(label: String, number: Double) -> some View {
-            LabeledContent {
-                Text(String(number))
-                    .textSelection(.enabled)
-            } label: {
-                Text(label)
-            }
-        }
-        
-        var body: some View {
-            VStack(alignment: .leading) {
-                Form {
-                    if let title = module.metadata["title"] {
-                        field(label: "Title", string: title)
-                    }
-                    if let artist = module.metadata["artist"] {
-                        field(label: "Artist", string: artist)
-                    }
-                    if let tracker = module.metadata["tracker"] {
-                        field(label: "Tracker", string: tracker)
-                    }
-                    if let trackerType = module.metadata["type_long"] {
-                        field(label: "Format", string: trackerType)
-                    }
-                    if let trackerType = module.metadata["originaltype_long"] {
-                        field(label: "Original Format", string: trackerType)
-                    }
-                    if let container = module.metadata["container_long"] {
-                        field(label: "Container", string: container)
-                    }
-                    if let savedDateISO8601 = module.metadata["date"] {
-                        field(label: "Date", string: savedDateISO8601)
-                    }
-                    Divider()
-                    field(label: "Active Channels", number: moduleState.currentPlayingChannels)
-                    field(label: "Est. BPM", number: moduleState.currentEstimatedBPM)
-                    field(label: "Speed", number: moduleState.currentSpeed)
-                    field(label: "Tempo", number: moduleState.currentTempo)
-                }
-                .formStyle(.columns)
-                if let message = module.metadata["message_raw"] {
-                    // TODO: Alignment of this is weird.
-                    ScrollView([.horizontal, .vertical]) {
-                        VStack(alignment: .leading) {
-                            Text(message)
-                                .textSelection(.enabled)
-                                .monospaced()
-                                .frame(maxHeight: .infinity, alignment: .topLeading)
-                        }
-                    }
-                    .scrollIndicators(.visible)
-                }
-            }
-            .padding()
-        }
-    }
-    
-    struct PatternsView: View {
-        let moduleState: ModuleState
-        
-        var body: some View {
-            Table(moduleState.module.patterns) {
-                TableColumn("ID") {
-                    Text(String($0.id))
-                }
-                TableColumn("Name", value: \.name)
-            }
-        }
-    }
-    
-    struct SamplesView: View {
-        let moduleState: ModuleState
-        
-        var body: some View {
-            List(moduleState.module.samples) {
-                Text($0.name)
-                    .textSelection(.enabled)
-                    .listRowSeparator(.hidden)
-            }
-            .scrollContentBackground(.hidden)
-            .monospaced()
-        }
-    }
-    
-    struct InstrumentsView: View {
-        let moduleState: ModuleState
-        
-        var body: some View {
-            List(moduleState.module.instruments) {
-                Text($0.name)
-                    .textSelection(.enabled)
-                    .listRowSeparator(.hidden)
-            }
-            .scrollContentBackground(.hidden)
-            .monospaced()
-        }
-    }
-    
-    struct OrdersView: View {
-        @Environment(\.player) private var player
-        
-        let moduleState: ModuleState
-        
-        @State var selectedOrders: Module.Order.ID?
-        
-        // weird but works out for us
-        func seekToOrder(items: Set<Module.Order.ID>) {
-            guard let orderID = items.first else {
-                return
-            }
-            moduleState.seek(order: orderID, row: 0)
-            if moduleState.module == player.currentModule {
-                player.updateNowPlaying()
-            }
-        }
-        
-        var body: some View {
-            Table(moduleState.module.orders, selection: $selectedOrders) {
-                TableColumn("ID") {
-                    Text(String($0.id))
-                }
-                TableColumn("Pattern") {
-                    Text(String($0.pattern))
-                }
-                TableColumn("Name", value: \.name)
-            }
-            .contextMenu(forSelectionType: Module.Order.ID.self) { items in
-                Button("Seek to Order") {
-                    seekToOrder(items: items)
-                }
-            } primaryAction: { items in
-                seekToOrder(items: items)
-            }
-        }
-    }
-    
-    enum InspectorMode {
-        case none
-        case orders
-        case patterns
-        case samples
-        case instruments
-        case metadata
-    }
-    
     @State var inspectorMode: InspectorMode = .none
     // On iOS, default to a denser zoom level
     #if os(macOS)
@@ -194,6 +24,8 @@ struct ContentView: View {
     #else
     @State var patternCellZoom: PatternViewer.PatternCellZoom = .note
     #endif
+    
+    @Environment(\.openWindow) private var openWindow
     
     var body: some View {
         // subtitle used for displaying time, order, and pattern
@@ -209,21 +41,11 @@ struct ContentView: View {
                         }
                 )
                 .environment(\.player, player)
-            #if !os(visionOS) // XXX: This should be a separate window on visionOS ideally, or an ornament at least
+            #if !os(visionOS)
                 .inspector(isPresented: Binding(get: { self.inspectorMode != .none },
                                                 set: { newValue in if !newValue { self.inspectorMode = .none } })) {
-                    if inspectorMode == .orders {
-                        OrdersView(moduleState: moduleState)
-                            .environment(\.player, player)
-                    } else if inspectorMode == .patterns {
-                        PatternsView(moduleState: moduleState)
-                    } else if inspectorMode == .samples {
-                        SamplesView(moduleState: moduleState)
-                    } else if inspectorMode == .instruments {
-                        InstrumentsView(moduleState: moduleState)
-                    } else if inspectorMode == .metadata {
-                        MetadataView(moduleState: moduleState)
-                    }
+                    Inspector(inspectorMode: inspectorMode, moduleState: moduleState)
+                        .environment(\.player, player)
                 }
             #endif
         }
@@ -279,6 +101,13 @@ struct ContentView: View {
             }
             #endif
             ToolbarItem(id: "inspector") {
+                #if os(visionOS)
+                Button("Inspector", systemImage: "info.circle") {
+                    // I don't want to figure out how to make ModuleState codable
+                    // (since we need the module, not just a snapshot of some properties)
+                    openWindow(value: ModuleStateRef(moduleState: moduleState))
+                }
+                #else
                 Menu {
                     Picker(selection: $inspectorMode) {
                         Text("None").tag(InspectorMode.none)
@@ -295,6 +124,7 @@ struct ContentView: View {
                 } label: {
                     Label("Inspector", systemImage: "info.circle")
                 }
+                #endif
             }
         }
         .modify {
