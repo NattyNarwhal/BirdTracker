@@ -209,6 +209,7 @@ struct ContentView: View {
                         }
                 )
                 .environment(\.player, player)
+            #if !os(visionOS) // XXX: This should be a separate window on visionOS ideally, or an ornament at least
                 .inspector(isPresented: Binding(get: { self.inspectorMode != .none },
                                                 set: { newValue in if !newValue { self.inspectorMode = .none } })) {
                     if inspectorMode == .orders {
@@ -224,6 +225,7 @@ struct ContentView: View {
                         MetadataView(moduleState: moduleState)
                     }
                 }
+            #endif
         }
         .toolbar {
             #if !os(macOS)
