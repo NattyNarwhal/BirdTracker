@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import UniformTypeIdentifiers
 import openmpt
 import os
 
@@ -55,13 +54,6 @@ class Module: Equatable {
     static func supportedExtensions() -> [String] {
         let extsString = String(libopenmptString: openmpt_get_supported_extensions()!)
         return extsString.split(separator: ";").map { String($0) }
-    }
-    
-    static func supportedTypes() -> [UTType] {
-        let exts = supportedExtensions()
-        return exts.compactMap { ext in
-            UTType(filenameExtension: ext)
-        }
     }
     
     // #MARK: - Init

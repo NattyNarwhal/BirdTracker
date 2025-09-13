@@ -19,7 +19,11 @@ import UniformTypeIdentifiers
     typealias Snapshot = Module
     
     static var readableContentTypes: [UTType] {
-        Module.supportedTypes()
+        // We should be able to use this below, but this only works for the first ext (mptm)
+        // let moduleType = UTType("org.moralintern.BirdTracker.module")!
+        // Instead, just return a UTType for each extension
+        let exts = Module.supportedExtensions().compactMap { UTType(filenameExtension: $0, conformingTo: .audio) }
+        return exts
     }
     
     required init(configuration: ReadConfiguration) throws {

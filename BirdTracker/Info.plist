@@ -2,22 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIApplicationSceneManifest</key>
-	<dict>
-		<key>UIApplicationSupportsMultipleScenes</key>
-		<true/>
-		<key>UISceneConfigurations</key>
-		<dict/>
-	</dict>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
-			<key>CFBundleTypeName</key>
-			<string>Tracker Module</string>
-			<key>CFBundleTypeRole</key>
-			<string>Viewer</string>
-			<key>LSHandlerRank</key>
-			<string>Default</string>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>mptm</string>
@@ -89,6 +76,105 @@
 				<string>ppm</string>
 				<string>mmcmp</string>
 			</array>
+            <key>UTTypeConformsTo</key>
+            <string>org.moralintern.BirdTracker.module</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                    <string>org.moralintern.BirdTracker.module</string>
+            </array>
+			<key>CFBundleTypeName</key>
+			<string>Tracker Module</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Default</string>
+		</dict>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+            <key>UTTypeConformsTo</key>
+            <array>
+                <string>public.audio</string>
+            </array>
+			<key>UTTypeDescription</key>
+			<string>Tracker Module</string>
+			<key>UTTypeIdentifier</key>
+			<string>org.moralintern.BirdTracker.module</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+                <key>public.filename-extension</key>
+                <array>
+                    <string>mptm</string>
+                    <string>mod</string>
+                    <string>s3m</string>
+                    <string>xm</string>
+                    <string>it</string>
+                    <string>667</string>
+                    <string>669</string>
+                    <string>amf</string>
+                    <string>ams</string>
+                    <string>c67</string>
+                    <string>cba</string>
+                    <string>dbm</string>
+                    <string>digi</string>
+                    <string>dmf</string>
+                    <string>dsm</string>
+                    <string>dsym</string>
+                    <string>dtm</string>
+                    <string>etx</string>
+                    <string>far</string>
+                    <string>fc</string>
+                    <string>fc13</string>
+                    <string>fc14</string>
+                    <string>fmt</string>
+                    <string>fst</string>
+                    <string>ftm</string>
+                    <string>imf</string>
+                    <string>ims</string>
+                    <string>ice</string>
+                    <string>j2b</string>
+                    <string>m15</string>
+                    <string>mdl</string>
+                    <string>med</string>
+                    <string>mms</string>
+                    <string>mt2</string>
+                    <string>mtm</string>
+                    <string>mus</string>
+                    <string>nst</string>
+                    <string>okt</string>
+                    <string>plm</string>
+                    <string>psm</string>
+                    <string>pt36</string>
+                    <string>ptm</string>
+                    <string>puma</string>
+                    <string>rtm</string>
+                    <string>sfx</string>
+                    <string>sfx2</string>
+                    <string>smod</string>
+                    <string>st26</string>
+                    <string>stk</string>
+                    <string>stm</string>
+                    <string>stx</string>
+                    <string>stp</string>
+                    <string>symmod</string>
+                    <string>tcb</string>
+                    <string>gmc</string>
+                    <string>gtk</string>
+                    <string>gt2</string>
+                    <string>ult</string>
+                    <string>unic</string>
+                    <string>wow</string>
+                    <string>xmf</string>
+                    <string>gdm</string>
+                    <string>mo3</string>
+                    <string>oxm</string>
+                    <string>umx</string>
+                    <string>xpk</string>
+                    <string>ppm</string>
+                    <string>mmcmp</string>
+                </array>
+            </dict>
 		</dict>
 	</array>
 </dict>
