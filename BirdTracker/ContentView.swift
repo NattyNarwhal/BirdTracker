@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import openmpt
 
 struct ContentView: View {
     @Environment(\.player) private var player
@@ -100,6 +99,19 @@ struct ContentView: View {
                 RoutePicker()
             }
             #endif
+            ToolbarItem(id: "zoom") {
+                Menu {
+                    Picker(selection: $patternCellZoom) {
+                        Text("Notes Only").tag(PatternViewer.PatternCellZoom.note)
+                        Text("Notes and Volume").tag(PatternViewer.PatternCellZoom.noteVolume)
+                        Text("Notes, Volume, and Effects").tag(PatternViewer.PatternCellZoom.full)
+                    } label: {
+                    }
+                    .pickerStyle(.inline)
+                } label: {
+                    Label("Zoom Level", systemImage: "plus.magnifyingglass")
+                }
+            }
             ToolbarItem(id: "inspector") {
                 #if os(visionOS)
                 Button("Inspector", systemImage: "info.circle") {
