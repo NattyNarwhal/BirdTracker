@@ -25,6 +25,23 @@ struct ContentView: View {
     #endif
     
     @Environment(\.openWindow) private var openWindow
+
+    @State private var showVolumePopover = false
+    
+    struct PlayerVolumeSlider: View {
+        @Environment(\.player) private var player
+        
+        var body: some View {
+            Slider(value: Binding(get: {
+                player.volume
+            }, set: { newValue in
+                player.volume = newValue
+            }), in: 0...1) {
+                Text("Volume")
+            }
+            .frame(minWidth: 200)
+        }
+    }
     
     var body: some View {
         // subtitle used for displaying time, order, and pattern
@@ -84,14 +101,17 @@ struct ContentView: View {
                 .frame(minWidth: 200)
             }
             ToolbarItem(id: "volumeSlider") {
-                Slider(value: Binding(get: {
-                    player.volume
-                }, set: { newValue in
-                    player.volume = newValue
-                }), in: 0...1) {
-                    Text("Volume")
+                // XXX: Dynamically adjust based on how volume is set
+                Button("Volume", systemImage: "speaker") {
+                    showVolumePopover.toggle()
                 }
-                .frame(minWidth: 200)
+                .popover(isPresented: $showVolumePopover, arrowEdge: .bottom) {
+                    VStack {
+                        PlayerVolumeSlider()
+                            .environment(\.player, player)
+                    }
+                    .padding()
+                }
             }
             #if os(iOS)
             ToolbarItem(id: "routePicker") {
@@ -99,6 +119,8 @@ struct ContentView: View {
                 RoutePicker()
             }
             #endif
+            #if os(macOS)
+            // Only show on macOS because fully zooming in on iPad at least kind of sucks
             ToolbarItem(id: "zoom") {
                 Menu {
                     Picker(selection: $patternCellZoom) {
@@ -112,6 +134,7 @@ struct ContentView: View {
                     Label("Zoom Level", systemImage: "plus.magnifyingglass")
                 }
             }
+            #endif
             ToolbarItem(id: "inspector") {
                 #if os(visionOS)
                 Button("Inspector", systemImage: "info.circle") {
