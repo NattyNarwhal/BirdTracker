@@ -57,10 +57,22 @@ import UniformTypeIdentifiers
     var currentEstimatedBPM: Double = 0
     
     func update() {
-        self.currentRow = module.currentRow
-        self.currentOrder = module.currentOrder
+        let newRow = module.currentRow
+        let newOrder = module.currentOrder
+        // Avoid swamping SwiftUI with observability induced view updates.
+        // A smarter thing would be only call update when the speed calls for it,
+        // not every sample request from AVF
+        if self.currentRow == newRow && self.currentOrder == newOrder {
+            return
+        }
+        self.currentRow = newRow
+        self.currentOrder = newOrder
         self.currentPattern = module.currentPattern
-        self.position = module.position
+        // Don't update the sliders as often
+        let newPosition = module.position.rounded()
+        if self.position.rounded() != newPosition {
+            self.position = module.position
+        }
         
         // these adjust dynamically too
         self.currentPlayingChannels = module.currentPlayingChannels
