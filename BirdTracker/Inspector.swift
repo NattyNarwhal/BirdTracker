@@ -221,11 +221,12 @@ struct InspectorWindow: View {
         .glassBackgroundEffect()
         .ornament(attachmentAnchor: .scene(.bottom)) {
             Picker(selection: $inspectorMode) {
-                Text("Sequences").tag(InspectorMode.orders)
-                Text("Patterns").tag(InspectorMode.patterns)
-                Text("Samples").tag(InspectorMode.samples)
+                // this doesn't support badges in this context
+                Text("Sequences \(Int(moduleState.module.orderCount))").tag(InspectorMode.orders)
+                Text("Patterns \(Int(moduleState.module.patternCount))").tag(InspectorMode.patterns)
+                Text("Samples \(Int(moduleState.module.sampleCount))").tag(InspectorMode.samples)
                 if moduleState.module.instrumentCount > 0 {
-                    Text("Instruments").tag(InspectorMode.instruments)
+                    Text("Instruments \(Int(moduleState.module.instrumentCount))").tag(InspectorMode.instruments)
                 }
                 Text("Metadata").tag(InspectorMode.metadata)
             } label: {

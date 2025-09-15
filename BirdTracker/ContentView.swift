@@ -147,10 +147,14 @@ struct ContentView: View {
                     Picker(selection: $inspectorMode) {
                         Text("None").tag(InspectorMode.none)
                         Text("Sequences").tag(InspectorMode.orders)
+                            .badge(Int(moduleState.module.orderCount))
                         Text("Patterns").tag(InspectorMode.patterns)
+                            .badge(Int(moduleState.module.patternCount))
                         Text("Samples").tag(InspectorMode.samples)
-                        if module.instrumentCount > 0 {
+                            .badge(Int(moduleState.module.sampleCount))
+                        if moduleState.module.instrumentCount > 0 {
                             Text("Instruments").tag(InspectorMode.instruments)
+                                .badge(Int(moduleState.module.instrumentCount))
                         }
                         Text("Metadata").tag(InspectorMode.metadata)
                     } label: {

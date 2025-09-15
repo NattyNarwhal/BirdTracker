@@ -343,10 +343,13 @@ class Module: Equatable {
         }
     }
     
+    lazy var patternCount: Int32 = {
+        return openmpt_module_get_num_patterns(underlying)
+    }()
+    
     lazy var patterns: [Pattern] = {
-        let count = openmpt_module_get_num_patterns(underlying)
         var patterns: [Pattern] = []
-        for i in 0...count-1 {
+        for i in 0...patternCount-1 {
             patterns.append(Pattern(module: self, index: i))
         }
         return patterns

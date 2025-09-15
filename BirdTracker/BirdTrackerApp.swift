@@ -29,13 +29,17 @@ struct BirdTrackerApp: App {
                         Text("None").tag(InspectorMode.none)
                             .keyboardShortcut("0")
                         Text("Sequences").tag(InspectorMode.orders)
+                            .badge(Int(focusedModule.module.orderCount))
                             .keyboardShortcut("1")
                         Text("Patterns").tag(InspectorMode.patterns)
+                            .badge(Int(focusedModule.module.patternCount))
                             .keyboardShortcut("2")
                         Text("Samples").tag(InspectorMode.samples)
+                            .badge(Int(focusedModule.module.sampleCount))
                             .keyboardShortcut("3")
                         if focusedModule.module.instrumentCount > 1 {
                             Text("Instruments").tag(InspectorMode.instruments)
+                                .badge(Int(focusedModule.module.instrumentCount))
                                 .keyboardShortcut("4")
                         }
                         Text("Metadata").tag(InspectorMode.metadata)
