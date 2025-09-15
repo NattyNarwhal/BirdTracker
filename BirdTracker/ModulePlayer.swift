@@ -54,7 +54,7 @@ import SwiftUI
             let left = abl[0].mData!.assumingMemoryBound(to: Float.self)
             let right = abl[1].mData!.assumingMemoryBound(to: Float.self)
             
-            let count = module.readStereo(left: left, right: right, count: Int(frameCount))
+            let count = module.readStereo(left: left, right: right, count: Int(frameCount), sampleRate: Int32(self.format!.sampleRate))
             if count == 0 {
                 silence.pointee = true
             }
