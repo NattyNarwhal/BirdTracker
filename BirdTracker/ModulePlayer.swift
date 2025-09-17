@@ -7,6 +7,7 @@
 
 import Foundation
 import AVFoundation
+import AVFAudio
 import MediaPlayer
 import SwiftUI
 
@@ -43,6 +44,15 @@ import SwiftUI
     
     init() {
         // #MARK: AVFoundation setup
+        #if !os(macOS)
+        let avSession = AVAudioSession.sharedInstance()
+        do {
+            try avSession.setCategory(.playback)
+        } catch {
+            print("Ope, no AV category")
+        }
+        #endif
+        
         self.sourceNode = AVAudioSourceNode(format: format!, renderBlock: { silence, timestamp, frameCount, buffers in
             guard let module = self.currentModule else {
                 print("Ope, no module")
