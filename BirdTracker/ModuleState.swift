@@ -59,9 +59,7 @@ import UniformTypeIdentifiers
     func update() {
         let newRow = module.currentRow
         let newOrder = module.currentOrder
-        // Avoid swamping SwiftUI with observability induced view updates.
-        // A smarter thing would be only call update when the speed calls for it,
-        // not every sample request from AVF
+        // Audio thread does this, but do the same here in case of i.e. seeks
         if self.currentRow == newRow && self.currentOrder == newOrder {
             return
         }

@@ -54,7 +54,8 @@ import SwiftUI
         #endif
         
         self.sourceNode = AVAudioSourceNode(format: format!, renderBlock: { silence, timestamp, frameCount, buffers in
-            guard let module = self.currentModule else {
+            guard let moduleState = self.currentModuleState,
+                  let module = self.currentModule else {
                 print("Ope, no module")
                 self.stop()
                 return noErr
@@ -69,17 +70,26 @@ import SwiftUI
                 silence.pointee = true
             }
             
-            // Or we gunk up the audio thread
-            DispatchQueue.main.async {
-                // TODO: Check if this is because of an error of end of module
-                if let moduleState = self.currentModuleState, count == 0 {
+            // Avoid swamping SwiftUI with observability induced view updates.
+            // A smarter thing would be only call update when the speed calls for it,
+            // not every sample request from AVF
+            let newRow = module.currentRow
+            let newOrder = module.currentOrder
+            if !(moduleState.currentRow == newRow && moduleState.currentOrder == newOrder) {
+                DispatchQueue.main.async {
+                    self.currentModuleState?.update()
+                }
+            }
+            
+            // TODO: Check if this is because of an error of end of module
+            if count == 0 {
+                DispatchQueue.main.async {
                     // We can't stop the audio thread from the audio thread,
                     // otherwise "ERROR, attempting to cleanup while rendering"
                     self.stop()
                     // Reset position (and then move onto next track)
                     moduleState.module.position = 0
                 }
-                self.currentModuleState?.update()
             }
             
             return noErr
