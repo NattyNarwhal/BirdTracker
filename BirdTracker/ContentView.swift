@@ -113,7 +113,7 @@ struct ContentView: View {
                     .padding()
                 }
             }
-            #if os(iOS)
+            #if os(iOS) || os(visionOS)
             ToolbarItem(id: "routePicker") {
                 // on macOS, this requires picking an AVPlayer
                 RoutePicker()
